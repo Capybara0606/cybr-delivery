@@ -1,0 +1,1 @@
+export async function GET() { return Response.json({ status: "ok", phase: 1, services: { database: "not_configured", authentication: "not_configured", gps: "not_implemented" } }, { headers: { "Cache-Control": "no-store" } }); }

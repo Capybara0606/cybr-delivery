@@ -1,0 +1,6 @@
+# Contrato de datos — diseño, no implementado
+Fase 2 creará migraciones y seed; actualmente no existe base conectada.
+Entidades: restaurants, restaurant_settings, restaurant_members, profiles, categories, products, product_options, product_option_values, orders, order_items, order_item_options, order_status_history, delivery_addresses, drivers, driver_assignments, driver_locations, payments.
+UUID internos, restaurant_id en entidades pertinentes, FKs y restricciones que aseguren relaciones consistentes dentro de la instalación. Dinero en centavos enteros con valores >=0. Snapshots de nombres, opciones y precios al comprar. Ubicación geography(Point,4326), cobertura con ST_DWithin.
+Crear pedido, items, opciones, pago pendiente y evento en una transacción con idempotency key única por restaurante. Recalcular disponibilidad/precios desde DB. Asignación mediante bloqueo de pedido/driver y restricción de asignación activa. Histórico append-only.
+Estados: pending -> accepted -> preparing -> ready_for_pickup -> assigned -> picked_up -> on_the_way -> delivered. Cancelled solo desde estados permitidos y por rol definido en migración. Asignación ofrecida vs aceptación son eventos distintos. Llegada se registra como evento. Entrega requiere código limitado en intentos y almacenado con hash, no texto público.
