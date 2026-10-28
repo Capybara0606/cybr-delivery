@@ -10,3 +10,5 @@ test-results/
 .supabase/
 supabase/.temp/
 supabase/.branches/
+
+public/maplibre/

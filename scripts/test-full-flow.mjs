@@ -28,7 +28,7 @@ try{
  const guest=await guestContext.newPage(),admin=await adminContext.newPage(),rider=await driverContext.newPage();
  const pageErrors=[];for(const p of [guest,admin,rider])p.on('pageerror',e=>pageErrors.push(e.message));
  await login(rider,'/driver',driver);await rider.getByRole('button',{name:/Fuera de turno/}).click();await expect(rider.getByRole('button',{name:/Estoy en turno/})).toBeVisible();
- await login(admin,'/admin',owner);await expect(admin.getByRole('heading',{name:/Tu cocina/})).toBeVisible();
+ await login(admin,'/admin',owner);await expect(admin.getByRole('heading',{name:/Tu cocina/})).toBeVisible();await expect(admin.locator('.sync-state')).toContainText('ACTUALIZACIÓN EN VIVO',{timeout:20000});
  await guest.goto(base);await expect(guest.getByRole('button',{name:/Capuchino/})).toBeVisible();
  await guest.screenshot({path:`${artifacts}/store-mobile.png`,fullPage:true});
  for(const width of [320,390,1440]){await guest.setViewportSize({width,height:900});check(await guest.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`Store fits ${width}px`);}

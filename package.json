@@ -15,7 +15,10 @@
     "db:stop": "supabase stop",
     "db:reset": "supabase db reset --local",
     "test:supabase": "node scripts/test-supabase-local.mjs",
-    "test:flow": "node scripts/test-full-flow.mjs"
+    "test:flow": "node scripts/test-full-flow.mjs",
+    "postinstall": "node scripts/prepare-map-worker.mjs",
+    "predev": "node scripts/prepare-map-worker.mjs",
+    "prebuild": "node scripts/prepare-map-worker.mjs"
   },
   "keywords": [],
   "author": "",

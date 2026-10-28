@@ -6,7 +6,7 @@ const intervals=z.array(z.tuple([z.string().regex(/^\d{2}:\d{2}$/),z.string().re
 const commands=z.discriminatedUnion("action",[
  z.object({action:z.literal("advance"),order_id:uuid,status:z.enum(["accepted","preparing","ready_for_pickup"])}),
  z.object({action:z.literal("assign"),order_id:uuid,driver_id:uuid}),z.object({action:z.literal("cancel"),order_id:uuid}),
- z.object({action:z.literal("save_product"),id:uuid.optional(),category_id:uuid,name:z.string().trim().min(1).max(120),description:z.string().max(1000),price_cents:z.number().int().min(0).max(1000000),is_available:z.boolean()}),
+ z.object({action:z.literal("save_product"),id:uuid.optional(),category_id:uuid,name:z.string().trim().min(1).max(120),description:z.string().max(1000),price_cents:z.number().int().min(0).max(1000000),is_available:z.boolean(),image_path:z.string().max(300).nullable().optional()}),
  z.object({action:z.literal("delete_product"),id:uuid}),
  z.object({action:z.literal("save_category"),id:uuid.optional(),name:z.string().trim().min(1).max(100)}),z.object({action:z.literal("delete_category"),id:uuid}),
  z.object({action:z.literal("settings"),delivery_fee_cents:z.number().int().min(0).max(100000),delivery_radius_m:z.number().int().min(100).max(50000),is_accepting_orders:z.boolean(),opening_hours:z.object({monday:intervals,tuesday:intervals,wednesday:intervals,thursday:intervals,friday:intervals,saturday:intervals,sunday:intervals})}),
@@ -17,7 +17,7 @@ export async function POST(request:Request){try{sameOrigin(request);const c=comm
 if(c.action==="advance")({error}=await db.rpc("advance_order",{p_order:c.order_id,p_status:c.status}));
 if(c.action==="assign")({error}=await db.rpc("offer_assignment",{p_order:c.order_id,p_driver:c.driver_id}));
 if(c.action==="cancel")({error}=await db.rpc("cancel_order",{p_order:c.order_id}));
-if(c.action==="save_product"){const {action,id:productId,...fields}=c;void action;({error}=productId?await db.from("products").update(fields).eq("id",productId).eq("restaurant_id",id):await db.from("products").insert({...fields,restaurant_id:id}));}
+if(c.action==="save_product"){const {action,id:productId,...fields}=c;void action;if(fields.image_path && (!fields.image_path.startsWith(id+"/")||!/^[-a-zA-Z0-9/.]+$/.test(fields.image_path)||fields.image_path.includes("..")))throw new ApiError(400,"Ruta de imagen no válida.");({error}=productId?await db.from("products").update(fields).eq("id",productId).eq("restaurant_id",id):await db.from("products").insert({...fields,restaurant_id:id}));}
 if(c.action==="delete_product"){({error}=await db.from("products").delete().eq("id",c.id).eq("restaurant_id",id));if(error?.code==="23503")({error}=await db.from("products").update({is_available:false}).eq("id",c.id).eq("restaurant_id",id));}
 if(c.action==="save_category")({error}=c.id?await db.from("categories").update({name:c.name}).eq("id",c.id).eq("restaurant_id",id):await db.from("categories").insert({restaurant_id:id,name:c.name}));
 if(c.action==="delete_category")({error}=await db.from("categories").delete().eq("id",c.id).eq("restaurant_id",id));
