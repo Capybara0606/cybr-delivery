@@ -322,8 +322,43 @@ try {
     .getByRole("button", { name: `Eliminar Especial E2E ${run}` })
     .click();
   await expect(row).toHaveCount(0);
+  if (uploadedProduct.data?.image_path)
+    await backend.storage
+      .from("product-images")
+      .remove([uploadedProduct.data.image_path]);
+  await admin.getByRole("button", { name: "Categorías", exact: true }).click();
+  const categoryName = `E2E categoría ${run}`,
+    renamedCategory = `E2E categoría editada ${run}`;
+  await admin
+    .getByRole("textbox", { name: "Nombre de nueva categoría" })
+    .fill(categoryName);
+  await admin
+    .getByRole("textbox", { name: "Nombre de nueva categoría" })
+    .press("Enter");
+  const categoryInput = admin.getByRole("textbox", {
+    name: `Nombre de ${categoryName}`,
+    exact: true,
+  });
+  await expect(categoryInput).toBeVisible();
+  await categoryInput.fill(renamedCategory);
+  await categoryInput.press("Enter");
+  await expect(
+    admin.getByRole("textbox", {
+      name: `Nombre de ${renamedCategory}`,
+      exact: true,
+    }),
+  ).toBeVisible();
+  await admin
+    .getByRole("button", { name: `Eliminar ${renamedCategory}`, exact: true })
+    .click();
+  await expect(
+    admin.getByRole("textbox", {
+      name: `Nombre de ${renamedCategory}`,
+      exact: true,
+    }),
+  ).toHaveCount(0);
   console.log(
-    "PASS browser administrator: product create/edit/availability/delete",
+    "PASS browser administrator: product/photo/category create, edit, availability and delete",
   );
   await admin.getByRole("button", { name: "Pedidos", exact: true }).click();
   const card = admin.locator(".order-card").filter({ hasText: `#${number}` });
