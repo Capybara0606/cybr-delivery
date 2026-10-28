@@ -591,6 +591,10 @@ export function Driver() {
             </p>
           </section>
         )}
+        <p className="field-hint">
+          En iPhone: Compartir → Agregar a inicio. La ubicación solo se comparte
+          de forma confiable mientras mantienes esta pantalla abierta.
+        </p>
         <section className="driver-history">
           <h2>Tus últimas entregas</h2>
           {data.history.length ? (

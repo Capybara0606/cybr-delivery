@@ -293,8 +293,18 @@ try {
     .getByLabel("Descripción", { exact: true })
     .fill("Producto temporal de integración");
   await editor.getByLabel("Precio USD", { exact: true }).fill("1.50");
+  await editor
+    .getByLabel(/Fotografía/)
+    .setInputFiles("public/icons/app-192.png");
+  await expect(editor.getByText("Imagen lista para guardar.")).toBeVisible();
   await editor.getByRole("button", { name: "Guardar producto" }).click();
   await expect(editor).toHaveCount(0);
+  const uploadedProduct = await backend
+    .from("products")
+    .select("image_path")
+    .eq("name", `Especial E2E ${run}`)
+    .single();
+  check(uploadedProduct.data?.image_path, "Uploaded product image persisted");
   const row = admin.getByRole("row").filter({ hasText: `Especial E2E ${run}` });
   await expect(row).toBeVisible();
   await row.getByRole("button", { name: `Editar Especial E2E ${run}` }).click();
@@ -514,6 +524,11 @@ try {
   );
   console.log(
     "PASS negative lifecycle: denied GPS, stale GPS, explicit simulation, concurrent retry and cancellation",
+  );
+  const driverManifest = await fetch(base + "/driver/manifest.webmanifest");
+  check(
+    driverManifest.ok && (await driverManifest.json()).start_url === "/driver",
+    "Driver PWA starts in its own workspace",
   );
   const manifest = await fetch(base + "/manifest.webmanifest");
   check(

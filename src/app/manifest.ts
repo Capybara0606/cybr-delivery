@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { installation } from "@/config/installation";
 export default function manifest(): MetadataRoute.Manifest {
   return {
+    id: "/",
     name: `${installation.restaurant.name} · Delivery`,
     short_name: installation.restaurant.name,
     description: "Pedidos directos y reparto propio de tu restaurante.",
