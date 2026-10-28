@@ -24,3 +24,7 @@ No usar el proyecto NanBites ni CYBR VIEW. Cada negocio tendrá datos y secretos
 El Docker del entorno usa almacenamiento con alto coste durante descompresión. El inicio completo de Supabase alcanzó 96% del disco y se canceló antes de arrancar servicios. Las pruebas PostgreSQL/PostGIS se ejecutaron aparte correctamente. La verificación Auth/Storage HTTP se trasladó a GitHub Actions y se superó con stack real efímero: https://github.com/Capybara0606/cybr-delivery/actions/runs/40606348081. Para repetir localmente, iniciar en máquina con suficiente disco y correr `npm run test:supabase`. No se creó ni configuró un proyecto Supabase cloud.
 
 Configuración Auth importante: [auth].enable_signup=false bloquea altas públicas; [auth.email].enable_signup=true conserva el proveedor email/password para usuarios provisionados. La suite real verifica que ambas condiciones se cumplan.
+
+## Aplicación completa
+Las nueve migraciones incluyen checkout/seguimiento service-only, eventos Realtime sin PII y flujo driver/GPS. Además de claves públicas, Next necesita SUPABASE_SECRET_KEY y ORDER_TOKEN_SECRET privados para sus APIs. Mantener secreto de pedidos estable; no usarlo como clave pública. Configurar CRON_SECRET y TRUST_PROXY para hosting real, ver DEPLOYMENT.md.
+`npm run test:flow` requiere Chromium (`npx playwright install --with-deps chromium`), compila producción y prueba todo con tres sesiones/datos temporales; no acepta un backend remoto. El driver tiene su manifiesto con start_url /driver para instalar su espacio por separado de la tienda.

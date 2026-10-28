@@ -9,7 +9,7 @@ Reglas SQL, checkout, autorización, estados, asignaciones, seguimiento y prueba
 - Categorías/productos/opciones/imágenes en su DB/Storage. No usar seed Café Aurora en un negocio real.
 - src/config/installation.ts: nombre/copy/identidad de la primera presentación.
 - src/themes/cybr.css y componentes de presentación: paleta, tipografía, logo, fotografías y composición. El tema inicial sigue CYBR; otros diseños pueden reemplazar la presentación usando el mismo contrato API.
-- Manifiesto/iconos/metadata del negocio en src/app/manifest.ts, layout.tsx y public/icons.
+- Manifiesto/iconos/metadata del negocio en src/app/manifest.ts, layout.tsx y public/icons, además de public/offline.html para la pantalla sin conexión.
 
 Las variables NEXT_PUBLIC_* deben configurarse antes de compilar; quedan incluidas en el bundle público. Nunca colocar secretos ahí.
 El backend resuelve restaurant_id desde configuración de servidor, no desde datos del comprador. La separación de datos no depende de una selección de restaurante en UI: cada plataforma abre directamente su propio menú.

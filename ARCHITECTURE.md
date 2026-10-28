@@ -1,12 +1,12 @@
 # Arquitectura
 ## Alcance actual
-Una aplicación Next.js con App Router y componentes de servidor. `/` presenta el sistema y su alcance; `/admin` y `/driver` muestran preparación sin datos personales ni operaciones. `/api/health` informa separadamente el estado de servicios. CSS con tokens CYBR y Tailwind instalado. En Fase 2 se prepararon clientes Supabase browser/SSR y autorización; no se conectaron aún las interfaces a operaciones. Health distingue configuración presente de servicio realmente verificado.
+Aplicación Next.js App Router/TypeScript: tienda `/`, seguimiento `/track`, administración `/admin` y repartidores `/driver`. Interfaces consumen APIs y datos reales de Supabase; sin configuración muestran un estado explícito y no inventan pedidos/ventas. CSS con tokens CYBR y Tailwind. Manifiestos separados para cliente y driver; offline sin datos privados. Arquitectura lista para instalaciones independientes.
 
 ## Arquitectura objetivo
 Navegadores cliente/admin/repartidor -> Next.js (validación y endpoints) -> Supabase PostgreSQL/Auth/Storage/Realtime + PostGIS.
 El navegador no decide precios, roles ni estados. Endpoints llaman operaciones PostgreSQL transaccionales. Roles y pertenencia al restaurante verificados en servidor y RLS. Las claves de servicio, si se necesitan, permanecen en servidor y no sustituyen comprobaciones de autorización.
 
-## Módulos futuros
+## Módulos del motor
 - `catalog`: categorías, productos y modificadores por restaurante.
 - `checkout`: invitado, dirección, cobertura, snapshots, precio servidor e idempotencia.
 - `orders`: máquina de estados e historial inmutable.
@@ -34,7 +34,7 @@ PWA para prueba con pantalla abierta, sin promesas en segundo plano. Abrir naveg
 Vercel se usará para HTTP; no mantener WebSockets propios ni workers persistentes allí. Supabase gestiona suscripciones. Seleccionar proveedor de teselas/geocodificación con condiciones de uso compatibles; MapLibre es renderizador y no incluye ese servicio.
 
 ## Fundación de datos implementada (Fase 2)
-Ver DATABASE.md y SUPABASE.md. Cuatro migraciones y un seed versionados, permisos explícitos, trigger perfil Auth, roles owner/staff/driver, funciones transaccionales de preparación/asignación/cancelación. Clientes SSR con cookies y verificación getUser; no se instancian desde las páginas públicas actuales. No hay Realtime operativo ni checkout público todavía.
+Ver DATABASE.md y SUPABASE.md. Ocho migraciones y un seed versionados; permisos explícitos, trigger perfil Auth, roles owner/staff/driver y funciones transaccionales. Clientes SSR con cookies/getUser para APIs privadas. Checkout invitado y Realtime operativo verificados en CI.
 
 ## Aplicación funcional (fases 3–8)
 / tienda cliente -> /api/catalog y /api/orders. /track extrae token del fragmento y consulta /api/tracking con POST. /admin y /driver autentican empleados mediante /api/session y operan sus APIs de rol con cookies SSR/getUser.

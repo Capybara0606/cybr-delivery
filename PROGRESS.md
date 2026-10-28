@@ -1,50 +1,37 @@
 # CYBR DELIVERY — progreso
 ## Estado actual
-Fase 2 completada y verificada. Fase 3 no iniciada ni autorizada todavía.
-Producto: mismo motor para plataformas independientes; un despliegue/base por restaurante y diseño personalizable. No marketplace ni catálogo de negocios.
-Repositorio público creado por el usuario: https://github.com/Capybara0606/cybr-delivery. Código en main, sin secretos. Sitio y Supabase cloud aún no desplegados/vinculados.
+MVP web implementado y probado con Supabase real en entornos temporales. Mismo motor para plataformas independientes: un despliegue/base por restaurante y diseño personalizable, sin marketplace.
+Código en main: https://github.com/Capybara0606/cybr-delivery. El usuario autorizó fases 3–8 y luego eligió **dejar el despliegue preparado por ahora**. No crear servicios cloud ni publicar el sitio hasta una nueva indicación.
 
-## Fase 1 — completada
-Repo nuevo con Next.js, TypeScript estricto, Tailwind y tokens CYBR tomados de cybr-view como referencia visual. Configuración de instalación y tema separados. Rutas /, /admin, /driver y /api/health; interfaces explícitamente en preparación. Investigación, arquitectura y decisiones documentadas. Build/tipos/lint y navegación Chromium 1440/390/320 px verificados. Commit inicial 8da2663.
-
-## Fase 2 — entregables
-- 4 migraciones SQL transaccionales: 17 tablas con RLS, PostGIS, 3 enums, FK compuestas, índices y precios en centavos.
-- Seed idempotente Café Aurora: 4 categorías, 12 productos, modificador de leche, Carlos y Andrea sin cuentas/contraseñas compartidas. Ubicación ficticia y recepción cerrada por defecto.
-- Permisos owner/staff/driver, perfiles Auth sin rol de metadata y provisión de membresías exclusiva de servicio.
-- RPCs de cobertura, preparación de pedidos, disponibilidad, asignación exclusiva, aceptación/rechazo y cancelación integral, con historial y bloqueo de filas.
-- Bucket de imágenes y políticas de escritura por negocio; cliente sin acceso a hashes de tracking/código.
-- Clientes Supabase browser/SSR, autorización con getUser y validación de claves públicas.
-- Scripts de provisión, pruebas DB efímeras y suite real Supabase; CI en GitHub Actions.
+## Fases y aceptación
+| Fase | Resultado |
+|---|---|
+| 1. Investigación/arquitectura/configuración | Completada. Repo nuevo y tokens CYBR; configuración y tema separados. |
+| 2. Supabase/seguridad/seed | Completada. 9 migraciones acumuladas, 18 tablas públicas con RLS, PostGIS, roles y seed Café Aurora. |
+| 3. Cliente/checkout | Completada. Menú real/opciones, carrito, ubicación, confirmación explícita del pin, checkout invitado transaccional, idempotencia, precios/horario/cobertura servidor y tracking privado. |
+| 4. Administración/Realtime | Completada. Login, Kanban, detalle/historial, CRUD catálogo/categorías/fotos, configuración, flota y ventas reales. Eventos sin PII con RLS y respaldo de actualización. |
+| 5. Repartidor | Completada. Turno, aceptación/rechazo, recogida/salida/llegada, navegación, código con cinco intentos, cobro/entrega y liberación atómicos. |
+| 6. GPS/mapas | Implementada y probada con navegador emulado. Autorización, edad/precisión, monotonía, stale, simulación explícita y corte al terminar. **Prueba en teléfono físico pendiente.** |
+| 7. Pruebas | Completadas las automatizadas. 41 unitarias/DB y flujo Playwright sobre build de producción/Supabase real con tres sesiones. No sustituyen la prueba de campo. |
+| 8. PWA/documentación/despliegue | PWA e instalación listas; manifiestos separados de tienda/repartidor, offline genérico sin datos privados, preflight/cron/Vercel e instrucciones Supabase. **Despliegue cloud pospuesto por el usuario.** |
 
 ## Evidencia
-- `npm run check`: TypeScript y ESLint sin errores/advertencias.
-- `npm test`: 3 unitarias de configuración pública y rechazo de claves privilegiadas.
-- `npm run test:db`: 30 pruebas pasan (27 DB + 3 unitarias), PostgreSQL 17/PostGIS 3.5 real, contenedor efímero. Incluye dos conexiones compitiendo por un pedido, permisos, snapshots, seed repetido, integridad, estados y cancelación.
-- `npm run build`: producción compilada. HTTP 200 en las cuatro rutas; health fase 2/backend no configurado refleja correctamente esta instancia sin credenciales.
-- Supabase completo arrancó en GitHub Actions: migraciones/seed reales, Auth email/password owner y driver, RLS/PostgREST, registro público cerrado, provisión solo servicio, hashes privados, escritura Storage por rol y RPC PostGIS.
-- Evidencia de integración y verificación principal: https://github.com/Capybara0606/cybr-delivery/actions/runs/40606348081 (código e8c4c3b). Todos los pasos de verificación superados; usuarios/objetos temporales eliminados por la suite.
-- `git diff --check` y revisión de archivos versionados: sin .env reales ni literales de credenciales.
+- `npm run check`: tipos de rutas, TypeScript y ESLint correctos, sin advertencias propias.
+- `npm run test:db`: 41 pruebas (35 DB + 6 unitarias), PostgreSQL 17/PostGIS 3.5 real, contenedor efímero y limpio.
+- `npm run test:supabase`: Auth, PostgREST, Storage, provisión y RLS reales; no registro público ni escalamiento por metadata.
+- `npm run test:flow`: compila producción con secretos locales solo en memoria. Cliente compra dos capuchinos + croissant = 975 centavos; envío 200, total 1175. Equipo prepara/asigna, Carlos acepta/recoge/sale, GPS autorizado, código, cobro y venta entregada.
+- El flujo también verifica precios alterados, fuera de cobertura, agotados, acceso ajeno, dos submits concurrentes, cancelación, CRUD productos/fotos/categorías, GPS denegado, offline, posición stale, simulación etiquetada, manifiestos y ausencia de datos privados en caché.
+- CI de referencia: https://github.com/Capybara0606/cybr-delivery/actions/runs/40612364864 — código cc7c68c. Todos los jobs superados.
+- Capturas reales con datos ficticios de la prueba: docs/screenshots/mvp/ (tienda desktop/móvil, panel, repartidor y pedido entregado). Capturas desde build de producción, no componentes falsos.
+- `python scripts/smoke.py`: HTTP/404, ambos manifiestos, 4 páginas en 1440/390/320 px, sin desbordamiento ni errores JS; verifica también el enlace al manifiesto específico driver.
+- `git diff --check` y revisión de archivos: sin .env reales ni literales de credenciales.
 
 ## Incidencias resueltas
-1. GitHub integration no podía crear repo (createRepository); usuario lo creó y se subió código conservando su visibilidad pública.
-2. Supabase completo no cabía durante descompresión en el Docker local (96% disco); se canceló y recuperó espacio. Verificación completa trasladada a runner aislado GitHub.
-3. Auth real detectó proveedor email deshabilitado. Se mantiene auth.enable_signup=false con auth.email.enable_signup=true: registro público cerrado y login de empleados provisionados habilitado. Suite repetida y superada.
+GitHub no permitía crear repo; usuario lo creó público y se conservó visibilidad. Supabase completo excedía el disco local; verificación trasladada a runner aislado GitHub. Auth email se habilitó manteniendo signup global cerrado. Prueba E2E encontró y corrigió borrado de código al marcar llegada y resolución incorrecta del worker MapLibre. Manifiesto driver usa ruta explícita para que Next lo exponga correctamente.
 
-## Límites
-No hay checkout público, login UI, administración funcional, seguimiento invitado ni GPS. Hay fundación de datos y permisos, no MVP de compra terminado. No se creó proyecto cloud ni se desplegó aplicación. La prueba HTTP usa stack real efímero en CI, no producción.
+## Pendientes concretos
+1. Crear/vincular Supabase dedicado y configurar secretos de hosting; seguir DEPLOYMENT.md. No se usaron bases NanBites/CYBR VIEW ni se creó una Site.
+2. Ensayo físico Android/iPhone con permisos, batería, GPS y cambio de app/bloqueo. Una PWA no garantiza GPS en segundo plano; si se necesita, evolucionar driver a app móvil.
+3. Operación real: sustituir datos/fotos demo, revisar proveedor de mapas/consumo, confirmar cron/retención y backups. No presentar Café Aurora como negocio real ni dar por certificada producción solo por pasar CI.
 
-## Siguiente fase
-Fase 3: catálogo conectado y checkout invitado. Crear operación transaccional de compra con precios/opciones/horario/cobertura validados, idempotencia de solicitud, tokens seguros, rate limiting y pruebas de compra. Requiere autorización; las fases 4–8 siguen sin iniciar.
-Antes de conectar una instalación persistente: crear proyecto Supabase dedicado o disponer de entorno local con espacio suficiente; ver SUPABASE.md. No usar bases de NanBites/CYBR VIEW.
-
-## Nueva autorización: fases 3–8
-El usuario autoriza continuar todas las fases y desplegar sitio/Supabase si resulta conveniente.
-Secuencia: (3) checkout transaccional + tienda, (4) login/admin + CRUD/Realtime, (5) driver/entrega, (6) GPS/mapas, (7) pruebas integrales, (8) PWA/publicación. No se requiere otra aprobación entre fases.
-Dependencia externa: no hay credenciales cloud Supabase en el entorno. Se solicitó configuración segura mientras avanza desarrollo. No se sustituirá la persistencia por arrays simulados.
-Aceptación: precio 1175 centavos desde DB, estados y permisos en servidor, idempotencia/concurrencia, token tracking privado, GPS autorizado/frescura, interfaces responsive y build/tests/CI correctos. Prueba GPS física requiere teléfono; no se declarará aprobada con simulación.
-
-Fase 3 implementada: tienda conectada por API, carrito local, opciones, checkout invitado transaccional, idempotencia, cobertura/horario/precios servidor, tracking con token en fragmento URL y límites persistidos. 36 pruebas y build superados; E2E se ampliará en Fase 7. Fase 4 en implementación: sesiones de equipo, Kanban/CRUD y eventos Realtime sin PII con RLS.
-
-Fase 4: API de equipo y panel Kanban, estados, detalle/historial, CRUD de productos/categorías, ajustes y flota implementados. Los eventos Realtime contienen solo identificadores/estado y usan RLS; se mantiene actualización de respaldo. Tipos/lint y la suite SQL se ejecutan antes de continuar.
-
-Fases 5–6 implementadas y verificadas en SQL: flujo driver, cinco intentos de código, cobro al entregar, GPS autorizado con fecha/precisión y exclusión mutua con cancelación. 40 tests y build superados. Seguimiento invitado actualiza cada 5 s y distingue posiciones obsoletas/simuladas; no se promete GPS de fondo. Fase 7 añade prueba Playwright de flujo completo con Supabase real en CI (pendiente de resultado). Usuario pidió dejar despliegue preparado por ahora; no crear Site ni proyectos cloud.
+Verificación final: ambos jobs de CI superados en cc7c68c. Se añadió prueba de regresión para que un rechazo no aparezca como entrega realizada por ese conductor. Las capturas de docs/screenshots/mvp proceden del run 40611329290 con datos ficticios, revisadas visualmente; la última ejecución volvió a verificar el mismo flujo.
