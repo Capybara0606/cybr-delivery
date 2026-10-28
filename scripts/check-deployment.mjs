@@ -11,7 +11,7 @@ const variables = {
 const failures = [];
 for (const [name, schema] of Object.entries(variables))
   if (!schema.safeParse(process.env[name]).success) failures.push(name);
-if (!["vercel", "cloudflare"].includes(process.env.TRUST_PROXY || ""))
+if (!["vercel", "cloudflare", "netlify"].includes(process.env.TRUST_PROXY || ""))
   failures.push("TRUST_PROXY");
 try {
   parseSupabaseConfig(

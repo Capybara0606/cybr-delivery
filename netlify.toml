@@ -1,0 +1,13 @@
+[build]
+  command = "npm run deploy:check && npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "24"
+  TRUST_PROXY = "netlify"
+
+[functions]
+  directory = "netlify/functions"
+
+# Next.js is detected automatically; Netlify provisions its OpenNext adapter.
+# No paid add-ons, domains, databases or external services are provisioned here.

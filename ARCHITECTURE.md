@@ -41,3 +41,6 @@ Ver DATABASE.md y SUPABASE.md. Ocho migraciones y un seed versionados; permisos 
 Páginas de presentación no renderizan listas falsas sin backend: el menú se obtiene de PostgreSQL y muestra configuración pendiente si falta conexión.
 Supabase maneja persistencia, reglas transaccionales, RLS, Auth, Storage y eventos Realtime. Next.js contiene validación HTTP, límite de cuerpo/origen, límites persistidos y secretos HMAC. MapLibre y Geolocation API en cliente; worker explícito servido desde la instalación.
 PWA /manifest.webmanifest + /sw.js: fallback offline genérico, sin caché de datos privados. Sitio preparado para Vercel; no se registró Site ni se adaptó a otro runtime al elegir el usuario dejar despliegue pendiente.
+
+## Alojamiento MVP gratuito
+Backend demo Supabase Free dedicado (`wpoutxcjrctxijbzdtyy`). Web Next.js prevista en Netlify Free mediante adaptador OpenNext automático; `netlify.toml` valida variables antes del build. Rate limit confía exclusivamente en x-nf-client-connection-ip cuando TRUST_PROXY=netlify. Scheduled Function cleanup-delivery llama RPC de retención con credencial privada, diariamente UTC; no acepta peticiones públicas según contrato del proveedor. Publicación pendiente de acceso a hosting y secretos, no verificada remotamente.

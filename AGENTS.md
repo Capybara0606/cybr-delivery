@@ -1,6 +1,6 @@
 # CYBR DELIVERY
 Leer PROGRESS.md, ARCHITECTURE.md y DECISIONS.md antes de trabajar.
-Completar solo la fase autorizada. MVP fases 3–8 implementado, pruebas web/DB/producción superadas. Ver PROGRESS.md para límites. Usuario eligió dejar despliegue preparado: no crear servicios cloud ni publicar sin nueva indicación. GPS físico pendiente; nunca confundir emulación con certificación de teléfono.
+Completar solo la fase autorizada. MVP fases 3–8 implementado, pruebas web/DB/producción superadas. Ver PROGRESS.md para límites. Usuario autorizó desplegar con costo $0. Supabase Free creado; hosting Netlify Free pendiente de acceso. No contratar planes ni extras de pago. GPS físico pendiente; nunca confundir emulación con certificación de teléfono.
 UI en español de El Salvador; código en inglés; moneda USD; zona America/El_Salvador.
 Next.js App Router, TypeScript estricto, Supabase previsto. No copiar el stack de CYBR VIEW: es una referencia visual.
 No fingir datos operativos. No incorporar código externo sin licencia compatible verificada.

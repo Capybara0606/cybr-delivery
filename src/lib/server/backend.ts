@@ -113,7 +113,9 @@ export async function limitRequest(
       ? request.headers.get("x-vercel-forwarded-for")
       : provider === "cloudflare"
         ? request.headers.get("cf-connecting-ip")
-        : "shared";
+        : provider === "netlify"
+          ? request.headers.get("x-nf-client-connection-ip")
+          : "shared";
   const key = `${scope}:${hash(`${process.env.SUPABASE_SECRET_KEY}:${ip || "shared"}`)}`;
   const { data, error } = await service.rpc("consume_request_limit", {
     p_key: key,

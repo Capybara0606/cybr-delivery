@@ -23,3 +23,7 @@
 - ADR-019: PWA cachea únicamente fallback offline/iconos. No encolar pagos/entregas ni cachear información de clientes.
 - ADR-020: worker MapLibre servido explícitamente desde el mismo origen para evitar resolución incorrecta del empaquetador. Licencia preservada y copiado durante instalación/build.
 - ADR-021: mantenimiento diario autenticado; visibilidad pública de posición abandonada expira a 24 h, retención física hasta 48 h si cron diario funciona. Borrado inmediato en estados terminales.
+
+## D-017 — Validación sin infraestructura pagada
+Usuario autoriza cloud solo a $0. Proyecto Supabase Free dedicado, organización CYBR, cotización confirmada por herramienta. Web prevista en Netlify Free: uso comercial permitido, límite duro de créditos y pausa al agotarse; usar subdominio netlify.app sin dominio comprado. No adoptar Vercel Hobby para este producto por su restricción personal/no comercial. No contratar complementos, recargas ni upgrades. El plan gratuito limita disponibilidad: Supabase puede pausar tras una semana inactivo, Netlify al agotarse cuota.
+La conexión Supabase no concede acceso a Netlify ni expone claves privadas de servidor; faltan esos accesos/configuración para publicar. No convertir el motor a otra arquitectura solo para eludir la configuración de cuentas.
