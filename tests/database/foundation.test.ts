@@ -443,6 +443,10 @@ describe.skipIf(!config)(
       await db.query("select public.respond_assignment($1,false)", [
         a.rows[0].id,
       ]);
+      const ownHistory = (
+        await db.query("select public.driver_workspace() as workspace")
+      ).rows[0].workspace.history;
+      expect(ownHistory[0].assignment_status).toBe("rejected");
       expect((await db.query("select id from public.orders")).rowCount).toBe(0);
       await actor(STAFF);
       expect(
