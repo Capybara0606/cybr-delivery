@@ -9,8 +9,19 @@ const variables = {
   CRON_SECRET: z.string().min(32),
 };
 const failures = [];
-for (const [name, schema] of Object.entries(variables))
-  if (!schema.safeParse(process.env[name]).success) failures.push(name);
+for (const [name, schema] of Object.entries(variables)) {
+  const value = process.env[name];
+  if (!schema.safeParse(value).success) {
+    const reason = value === undefined
+      ? "not available to build; check Production context and Builds scope"
+      : value.length === 0
+        ? "empty value in build context"
+        : ["ORDER_TOKEN_SECRET", "CRON_SECRET"].includes(name) && value.length < 32
+          ? "too short; requires at least 32 characters"
+          : "invalid format";
+    failures.push(`${name} (${reason})`);
+  }
+}
 if (!["vercel", "cloudflare", "netlify"].includes(process.env.TRUST_PROXY || ""))
   failures.push("TRUST_PROXY");
 try {

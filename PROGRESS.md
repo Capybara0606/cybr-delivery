@@ -45,3 +45,6 @@ Verificación final: ambos jobs de CI superados en cc7c68c. Se añadió prueba d
 - Netlify Free elegido: admite uso comercial, 300 créditos/mes con límite duro y pausa, sin excedentes cobrados. Vercel Hobby no se adopta para este producto por restricción de uso personal no comercial.
 - `netlify.toml`, función diaria cleanup-delivery y TRUST_PROXY=netlify preparados. Compatibilidad/documentación del adaptador comprobadas; despliegue y scheduler remotos todavía no verificados.
 - Verificación tras preparar Netlify: npm run check, npm run build, npm test (6 unitarias), git diff --check y rechazo de cron sin credenciales superados. No se afirma build adaptado/deploy Netlify hasta ejecutarlo con cuenta y variables.
+
+## Diagnóstico de variables en Netlify
+Despliegue bloqueado por ORDER_TOKEN_SECRET y CRON_SECRET. El preflight ahora distingue variable ausente, vacía, demasiado corta o formato inválido sin imprimir valores. Verificados cuatro casos con entorno sintético; check y build superados. No se rebaja el mínimo de 32 caracteres ni se generan secretos en logs. Publicación sigue pendiente.
