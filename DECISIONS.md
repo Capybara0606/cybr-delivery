@@ -10,3 +10,8 @@
 - ADR-009: Fase 1 local; despliegue reservado a fase 8. No modificar repositorios fuente.
 
 - ADR-010 (corrección del usuario): mismo motor, plataformas independientes y distinto diseño por restaurante. Un despliegue y Supabase por negocio inicialmente. No SaaS multiempresa compartido ni marketplace. Esta decisión sustituye cualquier propuesta previa de base compartida/tenant por slug. Configuración y tema separados de reglas de negocio, sin forks divergentes.
+
+- ADR-011: base Fase 2 probada en PostgreSQL/PostGIS real, con suite efímera que reproduce contratos de rol/JWT, más verificación Supabase local completo cuando está disponible. Nunca confundir pruebas DB con prueba de Auth HTTP.
+- ADR-012: registro público cerrado; cuentas Auth administradas y membresía mediante provision_member exclusivo service_role. Seed no crea contraseñas ni envía mensajes.
+- ADR-013: pedidos/historial/pagos sin mutaciones directas para navegador. Operaciones transaccionales SECURITY DEFINER con search_path vacío; claves privilegiadas fuera de cliente.
+- ADR-014: repositorio creado manualmente por usuario tras rechazo createRepository de integración. Usuario lo creó público; preservar esa visibilidad. Sitio sigue sin desplegar.

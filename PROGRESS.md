@@ -30,3 +30,24 @@ Corrección de alcance: mismo motor, distintas plataformas y diseños; despliegu
 - Chromium/Playwright: nueve combinaciones de rutas y anchuras 1440/390/320 sin desbordamiento horizontal; navegación admin -> driver correcta, un h1 por página y cero pageerror.
 - Capturas docs/screenshots/phase-1-desktop.png y phase-1-mobile.png. Inspección visual realizada; iconos ajustados a SVG para evitar glifos faltantes.
 - Sin operaciones remotas, cambios en repos existentes ni secretos. Solo Fase 1 implementada.
+
+## Fase 2 — fundación implementada; verificación HTTP integral pendiente
+1. Preparar Supabase CLI y PostgreSQL/PostGIS local de pruebas; aceptación: migraciones aplican desde cero.
+2. Esquema, roles, RLS y funciones de operación; depende de 1. Aceptación: restricciones impiden cruces, escalamiento y transiciones arbitrarias.
+3. Seed demo idempotente Café Aurora; depende de 2. Aceptación: 4 categorías, 12 productos, dos perfiles de repartidor sin contraseñas compartidas.
+4. Clientes Supabase/configuración y contrato de autenticación; aceptación: sin secretos en cliente, modo no configurado explícito. No implementar UI login todavía.
+5. Pruebas DB reales y CI; depende de 2-4. Aceptación: roles anónimo, staff y conductor, integridad, estados y concurrencia probados.
+6. Versionar y publicar repo privado si las credenciales lo permiten, sin publicar el sitio.
+Límite: sin catálogo/checkout UI, administración funcional ni GPS de fases siguientes.
+
+### Verificación Fase 2 hasta ahora
+- Migraciones aplicadas desde cero y seed repetido sin duplicados en contenedor PostgreSQL/PostGIS independiente.
+- `npm run test:db`: 30 tests pasan (27 base de datos + 3 unitarios), incluida concurrencia con dos conexiones reales.
+- `npm run check`: tipos/lint sin errores ni advertencias. `npm run build`: compilación producción correcta.
+- Supabase completo: intento detenido al llegar a 96% de disco durante descarga/descompresión de servicios. No inició servicios ni se probó Auth/Storage HTTP. Se recuperó espacio al cancelar. Script de integración incluido, no marcado como superado.
+- GitHub: usuario creó https://github.com/Capybara0606/cybr-delivery público tras rechazo de permiso createRepository; remoto configurado para publicación del código.
+
+### Resultado y límites de Fase 2
+Implementados: 17 tablas RLS, PostGIS, 4 migraciones, catálogo seed demo, funciones transaccionales de operación, provisioning de empleados, clientes SDK browser/SSR, validación de claves y CI.
+Verificados: 30 tests, tsc/lint/build y HTTP 200 de las 4 rutas con health fase 2/backend no configurado. `git diff --check` correcto.
+Pendientes de infraestructura: arrancar Supabase completo y ejecutar `npm run test:supabase`; vincular proyecto cloud dedicado y configurar credenciales; no hay autenticación UI. No se certifica Auth/Storage HTTP ni se inicia Fase 3 sin aprobación. No se desplegó el sitio.

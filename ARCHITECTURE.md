@@ -1,6 +1,6 @@
 # Arquitectura
 ## Alcance actual
-Una aplicación Next.js con App Router y componentes de servidor. `/` presenta el sistema y su alcance; `/admin` y `/driver` muestran preparación sin datos personales ni operaciones. `/api/health` informa separadamente el estado de servicios. CSS con tokens CYBR y Tailwind instalado. No hay conexiones externas en runtime de Fase 1.
+Una aplicación Next.js con App Router y componentes de servidor. `/` presenta el sistema y su alcance; `/admin` y `/driver` muestran preparación sin datos personales ni operaciones. `/api/health` informa separadamente el estado de servicios. CSS con tokens CYBR y Tailwind instalado. En Fase 2 se prepararon clientes Supabase browser/SSR y autorización; no se conectaron aún las interfaces a operaciones. Health distingue configuración presente de servicio realmente verificado.
 
 ## Arquitectura objetivo
 Navegadores cliente/admin/repartidor -> Next.js (validación y endpoints) -> Supabase PostgreSQL/Auth/Storage/Realtime + PostGIS.
@@ -32,3 +32,6 @@ PWA para prueba con pantalla abierta, sin promesas en segundo plano. Abrir naveg
 
 ## Límites
 Vercel se usará para HTTP; no mantener WebSockets propios ni workers persistentes allí. Supabase gestiona suscripciones. Seleccionar proveedor de teselas/geocodificación con condiciones de uso compatibles; MapLibre es renderizador y no incluye ese servicio.
+
+## Fundación de datos implementada (Fase 2)
+Ver DATABASE.md y SUPABASE.md. Cuatro migraciones y un seed versionados, permisos explícitos, trigger perfil Auth, roles owner/staff/driver, funciones transaccionales de preparación/asignación/cancelación. Clientes SSR con cookies y verificación getUser; no se instancian desde las páginas públicas actuales. No hay Realtime operativo ni checkout público todavía.
