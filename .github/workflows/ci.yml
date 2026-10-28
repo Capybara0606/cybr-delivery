@@ -20,3 +20,20 @@ jobs:
       - run: npm test
       - run: npm run test:db
       - run: npm run build
+  supabase-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Start real Supabase services without logging local keys
+        run: node scripts/supabase-local.mjs
+      - name: Verify Auth, PostgREST, Storage and authorization
+        run: npm run test:supabase
+      - name: Stop isolated local Supabase stack
+        if: always()
+        run: npx supabase stop --no-backup

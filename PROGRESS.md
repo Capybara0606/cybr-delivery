@@ -51,3 +51,7 @@ Límite: sin catálogo/checkout UI, administración funcional ni GPS de fases si
 Implementados: 17 tablas RLS, PostGIS, 4 migraciones, catálogo seed demo, funciones transaccionales de operación, provisioning de empleados, clientes SDK browser/SSR, validación de claves y CI.
 Verificados: 30 tests, tsc/lint/build y HTTP 200 de las 4 rutas con health fase 2/backend no configurado. `git diff --check` correcto.
 Pendientes de infraestructura: arrancar Supabase completo y ejecutar `npm run test:supabase`; vincular proyecto cloud dedicado y configurar credenciales; no hay autenticación UI. No se certifica Auth/Storage HTTP ni se inicia Fase 3 sin aprobación. No se desplegó el sitio.
+
+### Verificación HTTP remota en CI
+Dado el límite de disco local, se añadió un job separado de GitHub Actions para arrancar Supabase completo y ejecutar la suite Auth/PostgREST/Storage sin imprimir claves. Resultado pendiente de ejecución; no requiere credenciales cloud ni usa datos de producción.
+Código publicado en main: commit 5f8a64e; CI inicial en https://github.com/Capybara0606/cybr-delivery/actions/runs/40605988040.
