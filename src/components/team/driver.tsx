@@ -46,6 +46,7 @@ type Workspace = {
     status: string;
     total_cents: number;
     ended_at: string;
+    assignment_status?: string;
   }[];
 };
 export function Driver() {
@@ -603,7 +604,15 @@ export function Driver() {
                 <span>
                   #{h.order_number}
                   <small>
-                    {statusLabels[h.status]} ·{" "}
+                    {(
+                      {
+                        completed: "Entregado",
+                        rejected: "Asignación rechazada",
+                        cancelled: "Asignación cancelada",
+                        expired: "Asignación vencida",
+                      } as Record<string, string>
+                    )[h.assignment_status || ""] || statusLabels[h.status]}{" "}
+                    ·{" "}
                     {h.ended_at
                       ? new Date(h.ended_at).toLocaleDateString("es-SV", {
                           timeZone: "America/El_Salvador",
