@@ -36,3 +36,15 @@ No hay checkout público, login UI, administración funcional, seguimiento invit
 ## Siguiente fase
 Fase 3: catálogo conectado y checkout invitado. Crear operación transaccional de compra con precios/opciones/horario/cobertura validados, idempotencia de solicitud, tokens seguros, rate limiting y pruebas de compra. Requiere autorización; las fases 4–8 siguen sin iniciar.
 Antes de conectar una instalación persistente: crear proyecto Supabase dedicado o disponer de entorno local con espacio suficiente; ver SUPABASE.md. No usar bases de NanBites/CYBR VIEW.
+
+## Nueva autorización: fases 3–8
+El usuario autoriza continuar todas las fases y desplegar sitio/Supabase si resulta conveniente.
+Secuencia: (3) checkout transaccional + tienda, (4) login/admin + CRUD/Realtime, (5) driver/entrega, (6) GPS/mapas, (7) pruebas integrales, (8) PWA/publicación. No se requiere otra aprobación entre fases.
+Dependencia externa: no hay credenciales cloud Supabase en el entorno. Se solicitó configuración segura mientras avanza desarrollo. No se sustituirá la persistencia por arrays simulados.
+Aceptación: precio 1175 centavos desde DB, estados y permisos en servidor, idempotencia/concurrencia, token tracking privado, GPS autorizado/frescura, interfaces responsive y build/tests/CI correctos. Prueba GPS física requiere teléfono; no se declarará aprobada con simulación.
+
+Fase 3 implementada: tienda conectada por API, carrito local, opciones, checkout invitado transaccional, idempotencia, cobertura/horario/precios servidor, tracking con token en fragmento URL y límites persistidos. 36 pruebas y build superados; E2E se ampliará en Fase 7. Fase 4 en implementación: sesiones de equipo, Kanban/CRUD y eventos Realtime sin PII con RLS.
+
+Fase 4: API de equipo y panel Kanban, estados, detalle/historial, CRUD de productos/categorías, ajustes y flota implementados. Los eventos Realtime contienen solo identificadores/estado y usan RLS; se mantiene actualización de respaldo. Tipos/lint y la suite SQL se ejecutan antes de continuar.
+
+Fases 5–6 implementadas y verificadas en SQL: flujo driver, cinco intentos de código, cobro al entregar, GPS autorizado con fecha/precisión y exclusión mutua con cancelación. 40 tests y build superados. Seguimiento invitado actualiza cada 5 s y distingue posiciones obsoletas/simuladas; no se promete GPS de fondo. Fase 7 añade prueba Playwright de flujo completo con Supabase real en CI (pendiente de resultado). Usuario pidió dejar despliegue preparado por ahora; no crear Site ni proyectos cloud.

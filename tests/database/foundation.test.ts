@@ -39,7 +39,7 @@ describe.skipIf(!config)("PostgreSQL/PostGIS foundation with actual RLS roles",(
  },30000);
  afterAll(async()=>{await db?.end();});beforeEach(async()=>{await db.query('begin');});afterEach(async()=>{await db.query('rollback');});
  it('applies all 17 RLS tables and repeatable demo seed',async()=>{
-  const {rows}=await db.query("select count(*)::int as n from pg_tables where schemaname='public' and rowsecurity");expect(rows[0].n).toBe(17);
+  const {rows}=await db.query("select count(*)::int as n from pg_tables where schemaname='public' and rowsecurity");expect(rows[0].n).toBe(18);
   expect((await db.query('select count(*)::int as n from public.products')).rows[0].n).toBe(12);
   expect((await db.query('select count(*)::int as n from public.categories')).rows[0].n).toBe(4);
   expect((await db.query('select count(*)::int as n from public.drivers')).rows[0].n).toBe(2);
@@ -120,4 +120,58 @@ describe.skipIf(!config)("PostgreSQL/PostGIS foundation with actual RLS roles",(
    const count=await db.query("select count(*)::int n from public.driver_assignments where order_id=$1 and status in ('offered','accepted')",[o.id]);expect(count.rows[0].n).toBe(1);
   } finally {await c1.end();await c2.end();await db.query('begin');await actor(OWNER);await db.query('select public.cancel_order($1)',[o.id]);await db.query('commit');await db.query('begin');}
  });
+ it('checkout computes 1175 cents, writes all lines/payment and replays safely',async()=>{
+  await db.query("update public.restaurant_settings set is_accepting_orders=true,opening_hours=$1 where restaurant_id=$2",[JSON.stringify(Object.fromEntries(['monday','tuesday','wednesday','thursday','friday','saturday','sunday'].map(d=>[d,[['00:00','23:59']]]))),R]);
+  const key=randomUUID(),basket=JSON.stringify([{product_id:'c0000000-0000-4000-8000-000000000001',quantity:2,options:[]},{product_id:'c0000000-0000-4000-8000-000000000007',quantity:1,options:[]}]);
+  await db.query('set local role service_role');
+  const args=[R,'Cliente prueba','+50370000000','Calle ficticia 123','',13.6929,-89.2182,basket,key,'a'.repeat(64),'b'.repeat(64),'c'.repeat(64)];
+  const query='select public.create_guest_order($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) as result';
+  const first=(await db.query(query,args)).rows[0].result;expect(first.total_cents).toBe(1175);
+  expect((await db.query(query,args)).rows[0].result.id).toBe(first.id);
+  expect((await db.query('select count(*)::int n from public.order_items where order_id=$1',[first.id])).rows[0].n).toBe(2);
+  expect((await db.query('select amount_cents from public.payments where order_id=$1',[first.id])).rows[0].amount_cents).toBe(1175);
+  await errorCode(()=>db.query(query,args.map((a,i)=>i===9?'d'.repeat(64):a)),'23505');
+  const track=(await db.query("select public.guest_order_tracking($1) as data",['b'.repeat(64)])).rows[0].data;expect(track.total_cents).toBe(1175);expect(track.location).toBeUndefined();
+ });
+ it('checkout denies browser invocation, closed stores and invalid coverage without partial orders',async()=>{
+  const before=(await db.query('select count(*)::int n from public.orders')).rows[0].n;
+  const args=[R,'Cliente','+50370000000','Calle ficticia','',13.6929,-89.2182,JSON.stringify([{product_id:'c0000000-0000-4000-8000-000000000001',quantity:1,options:[]}]),randomUUID(),'a'.repeat(64),'b'.repeat(64),'c'.repeat(64)];
+  const query='select public.create_guest_order($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)';
+  await db.query('set local role anon');await errorCode(()=>db.query(query,args),'42501');
+  await db.query('set local role service_role');await errorCode(()=>db.query(query,args),'23514');
+  expect((await db.query('select count(*)::int n from public.orders')).rows[0].n).toBe(before);
+ });
+ it('request limiting is persisted and cannot be bypassed with another process',async()=>{await db.query('set local role service_role');for(let i=0;i<3;i++)expect((await db.query("select public.consume_request_limit('test-key',2,60) ok")).rows[0].ok).toBe(i<2);});
+
+ it('Realtime events contain no customer data and dashboard is staff-only',async()=>{const o=await order();await actor(STAFF);const events=await db.query('select * from public.order_events where order_id=$1',[o.id]);expect(events.rows[0]).toHaveProperty('status','pending');expect(events.rows[0]).not.toHaveProperty('customer_phone');const dashboard=(await db.query('select public.staff_dashboard($1) d',[R])).rows[0].d;expect(dashboard.active).toBeGreaterThan(0);await actor(CARLOS);expect((await db.query('select order_id from public.order_events where order_id=$1',[o.id])).rowCount).toBe(0);await errorCode(()=>db.query('select public.staff_dashboard($1)',[R]),'42501');});
+
+ it('driver completes only its accepted delivery and exact code records cash payment',async()=>{
+  const o=await order();await db.query("update public.orders set delivery_code_hash=encode(extensions.digest('123456','sha256'),'hex') where id=$1",[o.id]);
+  await ready(o.id);const a=(await db.query('select public.offer_assignment($1,$2) id',[o.id,DRIVER])).rows[0].id;
+  await actor(CARLOS);await db.query('select public.respond_assignment($1,true)',[a]);
+  await errorCode(()=>db.query("select public.driver_progress($1,'on_the_way',null)",[o.id]),'23514');
+  await db.query("select public.driver_progress($1,'picked_up',null)",[o.id]);await db.query("select public.driver_progress($1,'on_the_way',null)",[o.id]);
+  const wrong=(await db.query("select public.driver_progress($1,'delivered','wrong') result",[o.id])).rows[0].result;expect(wrong.ok).toBe(false);
+  const right=(await db.query("select public.driver_progress($1,'delivered',encode(extensions.digest('123456','sha256'),'hex')) result",[o.id])).rows[0].result;expect(right.ok).toBe(true);
+  await superuser();expect((await db.query('select status,delivery_code_attempts from public.orders where id=$1',[o.id])).rows[0]).toEqual({status:'delivered',delivery_code_attempts:1});
+  expect((await db.query('select status from public.payments where order_id=$1',[o.id])).rows[0].status).toBe('collected');
+  expect((await db.query('select status from public.driver_assignments where id=$1',[a])).rows[0].status).toBe('completed');
+ });
+ it('GPS rejects other drivers, stale/invalid positions and stops after cancellation',async()=>{
+  const o=await order();await ready(o.id);const a=(await db.query('select public.offer_assignment($1,$2) id',[o.id,DRIVER])).rows[0].id;
+  await actor(CARLOS);await db.query('select public.respond_assignment($1,true)',[a]);await db.query("select public.driver_progress($1,'picked_up',null)",[o.id]);await db.query("select public.driver_progress($1,'on_the_way',null)",[o.id]);
+  await actor(ANDREA);await errorCode(()=>db.query('select public.publish_driver_location($1,13.69,-89.21,10,now(),false)',[a]),'42501');
+  await actor(CARLOS);await errorCode(()=>db.query("select public.publish_driver_location($1,13.69,-89.21,10,now()-interval '31 seconds',false)",[a]),'22023');
+  await errorCode(()=>db.query('select public.publish_driver_location($1,99,-89.21,10,now(),false)',[a]),'22023');
+  await db.query('select public.publish_driver_location($1,13.69,-89.21,10,now(),false)',[a]);expect((await db.query('select assignment_id from public.driver_locations')).rowCount).toBe(1);
+  await actor(OWNER);expect((await db.query('select public.staff_active_locations($1) l',[R])).rows[0].l.length).toBe(1);await db.query('select public.cancel_order($1)',[o.id]);
+  await actor(CARLOS);await errorCode(()=>db.query('select public.publish_driver_location($1,13.69,-89.21,10,now(),false)',[a]),'42501');expect((await db.query('select assignment_id from public.driver_locations')).rowCount).toBe(0);
+ });
+ it('delivery code attempts persist and block brute forcing after five failures',async()=>{
+  const o=await order();await ready(o.id);const a=(await db.query('select public.offer_assignment($1,$2) id',[o.id,DRIVER])).rows[0].id;await actor(CARLOS);await db.query('select public.respond_assignment($1,true)',[a]);await db.query("select public.driver_progress($1,'picked_up',null)",[o.id]);await db.query("select public.driver_progress($1,'on_the_way',null)",[o.id]);
+  for(let i=0;i<5;i++)expect((await db.query("select public.driver_progress($1,'delivered','bad') r",[o.id])).rows[0].r.ok).toBe(false);
+  expect((await db.query("select public.driver_progress($1,'delivered','hash-only-test') r",[o.id])).rows[0].r.ok).toBe(false);
+  await superuser();expect((await db.query('select delivery_code_attempts from public.orders where id=$1',[o.id])).rows[0].delivery_code_attempts).toBe(5);
+ });
+
 });

@@ -10,8 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v6
         with:
           node-version-file: .nvmrc
           cache: npm
@@ -24,8 +24,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v6
         with:
           node-version-file: .nvmrc
           cache: npm
@@ -34,6 +34,19 @@ jobs:
         run: node scripts/supabase-local.mjs
       - name: Verify Auth, PostgREST, Storage and authorization
         run: npm run test:supabase
+      - name: Install Chromium for end-to-end verification
+        run: npx playwright install --with-deps chromium
+      - name: Verify complete customer, admin and driver flow
+        run: npm run test:flow
+        env:
+          CYBR_DEBUG_SERVER: "1"
+      - name: Retain fictitious demo screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cybr-flow-screenshots
+          path: test-results/*.png
+          if-no-files-found: ignore
       - name: Stop isolated local Supabase stack
         if: always()
         run: npx supabase stop --no-backup

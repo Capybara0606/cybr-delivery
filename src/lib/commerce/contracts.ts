@@ -1,0 +1,13 @@
+import { z } from "zod";
+export const cartLineSchema = z.object({ product_id: z.uuid(), quantity: z.number().int().min(1).max(99), options: z.array(z.uuid()).max(20).default([]) }).strict();
+export const checkoutSchema = z.object({ name: z.string().trim().min(1).max(120), phone: z.string().regex(/^\+?[0-9 ()-]{8,25}$/), address: z.string().trim().min(5).max(500), instructions: z.string().max(1000).default(""), lat: z.number().min(-90).max(90), lng: z.number().min(-180).max(180), items: z.array(cartLineSchema).min(1).max(50), idempotency_key: z.uuid() }).strict();
+export type CartLine = z.infer<typeof cartLineSchema>;
+export type Product = { id: string; name: string; description: string; price_cents: number; category_id: string; image_path: string | null };
+export type Category = { id: string; name: string };
+export type OptionGroup = { id: string; product_id: string; name: string; min_choices: number; max_choices: number };
+export type OptionValue = { id: string; option_id: string; name: string; extra_price_cents: number; is_available: boolean };
+export type Catalog = { restaurant: { id: string; name: string; pickup_address: string; is_demo: boolean; lat: number; lng: number }; settings: { delivery_fee_cents: number; delivery_radius_m: number; is_accepting_orders: boolean; opening_hours: Record<string, string[][]> }; products: Product[]; categories: Category[]; options: OptionGroup[]; values: OptionValue[] };
+export type LocationPoint = { lat: number; lng: number; accuracy_m?: number; recorded_at?: string; is_stale?: boolean; is_simulated?: boolean };
+export type Tracking = { id: string; order_number: number; status: string; total_cents: number; customer_name: string; address: string; created_at: string; delivery_code?: string; items: { name: string; quantity: number; line_total_cents: number }[]; history: { status: string; event: string; created_at: string }[]; location?: LocationPoint | null };
+export const money = (cents: number) => new Intl.NumberFormat("es-SV", { style: "currency", currency: "USD" }).format(cents / 100);
+export const statusLabels: Record<string,string> = { pending:"Recibido",accepted:"Aceptado",preparing:"En preparación",ready_for_pickup:"Listo para recoger",assigned:"Repartidor asignado",picked_up:"Recogido",on_the_way:"En camino",delivered:"Entregado",cancelled:"Cancelado" };

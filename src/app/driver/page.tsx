@@ -1,3 +1,3 @@
-import { WorkspaceStatus } from "@/components/workspace-status";
-export const metadata = { title: "Repartidores" };
-export default function DriverPage() { return <WorkspaceStatus kind="driver"/>; }
+import { Driver } from "@/components/team/driver";
+export const metadata={title:"Repartidores"};
+export default function Page(){return <Driver/>;}
