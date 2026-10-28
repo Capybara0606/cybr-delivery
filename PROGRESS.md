@@ -55,3 +55,5 @@ Pendientes de infraestructura: arrancar Supabase completo y ejecutar `npm run te
 ### Verificación HTTP remota en CI
 Dado el límite de disco local, se añadió un job separado de GitHub Actions para arrancar Supabase completo y ejecutar la suite Auth/PostgREST/Storage sin imprimir claves. Resultado pendiente de ejecución; no requiere credenciales cloud ni usa datos de producción.
 Código publicado en main: commit 5f8a64e; CI inicial en https://github.com/Capybara0606/cybr-delivery/actions/runs/40605988040.
+
+La primera ejecución de integración real arrancó Supabase y aplicó migraciones/seed correctamente. Pasaron catálogo anónimo, rechazo de datos privados y registro público cerrado. Falló login de empleado: auth.email.enable_signup=false deshabilitaba el proveedor email completo. Se mantiene auth.enable_signup=false y se habilita proveedor email para cuentas provisionadas; se repite suite real (sin darla por aprobada antes del resultado).

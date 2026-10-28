@@ -20,7 +20,7 @@ try {
   const result=await admin.auth.admin.createUser({email,password,email_confirm:true,user_metadata:{full_name:'Temporary integration test',role:'owner'}});
   check(!result.error&&result.data.user,'Create isolated confirmed test user without email');const user=result.data.user;created.push(user.id);
   const membership=await admin.rpc('provision_member',{p_restaurant:restaurant,p_user:user.id,p_role:role,p_driver:role==='driver'?driver:null});check(!membership.error,`Trusted provisioning ${role}: ${membership.error?.code}`);
-  const session=createClient(url,anonKey,options);const signedIn=await session.auth.signInWithPassword({email,password});check(!signedIn.error,`Real password login ${role}`);
+  const session=createClient(url,anonKey,options);const signedIn=await session.auth.signInWithPassword({email,password});check(!signedIn.error,`Real password login ${role}: ${signedIn.error?.code ?? "unknown"}`);
   const verified=await session.auth.getUser();check(verified.data.user?.id===user.id,'JWT verified by Auth');
   const member=await session.from('restaurant_members').select('role').eq('user_id',user.id).single();check(member.data?.role===role,'RLS membership read');
   const escalation=await session.rpc('provision_member',{p_restaurant:restaurant,p_user:user.id,p_role:'owner',p_driver:null});check(escalation.error,'Authenticated client must not provision');
