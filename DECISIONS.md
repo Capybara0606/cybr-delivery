@@ -15,3 +15,11 @@
 - ADR-012: registro público cerrado; cuentas Auth administradas y membresía mediante provision_member exclusivo service_role. Seed no crea contraseñas ni envía mensajes.
 - ADR-013: pedidos/historial/pagos sin mutaciones directas para navegador. Operaciones transaccionales SECURITY DEFINER con search_path vacío; claves privilegiadas fuera de cliente.
 - ADR-014: repositorio creado manualmente por usuario tras rechazo createRepository de integración. Usuario lo creó público; preservar esa visibilidad. Sitio sigue sin desplegar.
+
+- ADR-015: usuario autorizó fases 3–8; luego eligió dejar despliegue preparado. No crear servicios cloud ni registrar Site.
+- ADR-016: compra/tracking mediante API Next y RPC service-only. Tokens HMAC reproducibles para reintentos, 256 bits y fragmento URL; código derivado independiente, solo hashes en DB. Secreto estable siete días.
+- ADR-017: Realtime sobre eventos sin PII/ubicaciones con RLS; invitado consulta API autorizada cada 5 s en lugar de canal anónimo.
+- ADR-018: GPS solo en primer plano con consentimiento; fuente simulada etiquetada y habilitación explícita para demo. No se promete background ni certificación de sensor físico a partir de navegador emulado.
+- ADR-019: PWA cachea únicamente fallback offline/iconos. No encolar pagos/entregas ni cachear información de clientes.
+- ADR-020: worker MapLibre servido explícitamente desde el mismo origen para evitar resolución incorrecta del empaquetador. Licencia preservada y copiado durante instalación/build.
+- ADR-021: mantenimiento diario autenticado; visibilidad pública de posición abandonada expira a 24 h, retención física hasta 48 h si cron diario funciona. Borrado inmediato en estados terminales.

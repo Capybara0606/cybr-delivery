@@ -1,0 +1,3 @@
+import { timingSafeEqual } from "node:crypto";
+import { apiFailure,serviceBackend,noStore } from "@/lib/server/backend";
+export async function GET(request:Request){const secret=process.env.CRON_SECRET;if(!secret||secret.length<32)return Response.json({error:"Mantenimiento no configurado."},{status:503,headers:noStore});const expected=Buffer.from(`Bearer ${secret}`),supplied=Buffer.from(request.headers.get("authorization")||"");if(supplied.length!==expected.length||!timingSafeEqual(supplied,expected))return Response.json({error:"No autorizado."},{status:401,headers:noStore});try{const {error}=await serviceBackend().rpc("cleanup_delivery_data");if(error)throw error;return Response.json({ok:true},{headers:noStore});}catch(e){return apiFailure(e);}}

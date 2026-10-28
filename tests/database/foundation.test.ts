@@ -174,4 +174,6 @@ describe.skipIf(!config)("PostgreSQL/PostGIS foundation with actual RLS roles",(
   await superuser();expect((await db.query('select delivery_code_attempts from public.orders where id=$1',[o.id])).rows[0].delivery_code_attempts).toBe(5);
  });
 
+ it('simulated locations are blocked for a real restaurant',async()=>{const o=await order();await db.query('update public.restaurants set is_demo=false where id=$1',[R]);await ready(o.id);const a=(await db.query('select public.offer_assignment($1,$2) id',[o.id,DRIVER])).rows[0].id;await actor(CARLOS);await db.query('select public.respond_assignment($1,true)',[a]);await db.query("select public.driver_progress($1,'picked_up',null)",[o.id]);await db.query("select public.driver_progress($1,'on_the_way',null)",[o.id]);await errorCode(()=>db.query('select public.publish_driver_location($1,13.69,-89.21,10,now(),true)',[a]),'42501');});
+
 });

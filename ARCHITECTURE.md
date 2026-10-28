@@ -35,3 +35,9 @@ Vercel se usará para HTTP; no mantener WebSockets propios ni workers persistent
 
 ## Fundación de datos implementada (Fase 2)
 Ver DATABASE.md y SUPABASE.md. Cuatro migraciones y un seed versionados, permisos explícitos, trigger perfil Auth, roles owner/staff/driver, funciones transaccionales de preparación/asignación/cancelación. Clientes SSR con cookies y verificación getUser; no se instancian desde las páginas públicas actuales. No hay Realtime operativo ni checkout público todavía.
+
+## Aplicación funcional (fases 3–8)
+/ tienda cliente -> /api/catalog y /api/orders. /track extrae token del fragmento y consulta /api/tracking con POST. /admin y /driver autentican empleados mediante /api/session y operan sus APIs de rol con cookies SSR/getUser.
+Páginas de presentación no renderizan listas falsas sin backend: el menú se obtiene de PostgreSQL y muestra configuración pendiente si falta conexión.
+Supabase maneja persistencia, reglas transaccionales, RLS, Auth, Storage y eventos Realtime. Next.js contiene validación HTTP, límite de cuerpo/origen, límites persistidos y secretos HMAC. MapLibre y Geolocation API en cliente; worker explícito servido desde la instalación.
+PWA /manifest.webmanifest + /sw.js: fallback offline genérico, sin caché de datos privados. Sitio preparado para Vercel; no se registró Site ni se adaptó a otro runtime al elegir el usuario dejar despliegue pendiente.
