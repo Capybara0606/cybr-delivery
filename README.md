@@ -1,8 +1,10 @@
 # CYBR DELIVERY
+
+[![Verify CYBR DELIVERY](https://github.com/Capybara0606/cybr-delivery/actions/workflows/ci.yml/badge.svg)](https://github.com/Capybara0606/cybr-delivery/actions/workflows/ci.yml)
 Delivery propio para restaurantes de El Salvador. Proyecto nuevo, independiente de NanBites y CYBR VIEW. Un mismo motor para plataformas independientes: cada restaurante recibe su despliegue, base de datos y diseño. No hay marketplace ni catálogo de negocios.
 
 ## Estado
-Fase 2: esquema Supabase/PostGIS, RLS, seed demo, provisión de empleados y pruebas de integración. Rutas de UI siguen siendo preparación, no una tienda operativa.
+Fase 2 completada: esquema Supabase/PostGIS, RLS, seed demo, provisión de empleados y pruebas de integración SQL + Auth/Storage reales superadas en CI. Rutas de UI siguen siendo preparación, no una tienda operativa.
 No hay checkout, pedidos desde interfaz, ventas ni GPS. No se ha desplegado el sitio.
 
 ## Ejecutar

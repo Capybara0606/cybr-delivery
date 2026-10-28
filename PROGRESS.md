@@ -1,59 +1,38 @@
-# Progreso
-## Fase 1 — implementación y verificación completadas
-Alcance autorizado: investigación, arquitectura, preparación del entorno y estructura inicial ejecutable con identidad CYBR.
-Tareas y dependencias:
-1. Inspeccionar referencia visual y herramientas -> tokens CYBR y stack documentados.
-2. Documentar investigación/licencias -> decisión de repo nuevo sin copiar alternativas.
-3. Crear Next.js estricto con rutas base -> las tres interfaces muestran alcance veraz.
-4. Verificar dependencias, tipos, lint, build y HTTP -> registrar resultados reales abajo.
-Criterios: arranca sin secretos; build limpio; sin datos falsos operativos; marca coherente; arquitectura/decisiones/investigación versionadas; fase 2 no implementada.
+# CYBR DELIVERY — progreso
+## Estado actual
+Fase 2 completada y verificada. Fase 3 no iniciada ni autorizada todavía.
+Producto: mismo motor para plataformas independientes; un despliegue/base por restaurante y diseño personalizable. No marketplace ni catálogo de negocios.
+Repositorio público creado por el usuario: https://github.com/Capybara0606/cybr-delivery. Código en main, sin secretos. Sitio y Supabase cloud aún no desplegados/vinculados.
 
-## Fases futuras (sin iniciar)
-2. Supabase, migraciones, RLS y seed. Requiere aprobación y entorno de datos.
-3. Catálogo/checkout invitado.
-4. Administración/Realtime.
-5. Repartidor/asignaciones.
-6. GPS/mapas autorizados.
-7. Integración/seguridad/flujo completo.
-8. PWA/documentación/despliegue.
+## Fase 1 — completada
+Repo nuevo con Next.js, TypeScript estricto, Tailwind y tokens CYBR tomados de cybr-view como referencia visual. Configuración de instalación y tema separados. Rutas /, /admin, /driver y /api/health; interfaces explícitamente en preparación. Investigación, arquitectura y decisiones documentadas. Build/tipos/lint y navegación Chromium 1440/390/320 px verificados. Commit inicial 8da2663.
 
-## Límites actuales
-Sin autenticación, DB, productos conectados, checkout, pedidos ni GPS. Sin despliegue ni repositorio GitHub nuevo. La infraestructura real y las credenciales se resolverán para Fase 2. No afirmar MVP funcional todavía.
+## Fase 2 — entregables
+- 4 migraciones SQL transaccionales: 17 tablas con RLS, PostGIS, 3 enums, FK compuestas, índices y precios en centavos.
+- Seed idempotente Café Aurora: 4 categorías, 12 productos, modificador de leche, Carlos y Andrea sin cuentas/contraseñas compartidas. Ubicación ficticia y recepción cerrada por defecto.
+- Permisos owner/staff/driver, perfiles Auth sin rol de metadata y provisión de membresías exclusiva de servicio.
+- RPCs de cobertura, preparación de pedidos, disponibilidad, asignación exclusiva, aceptación/rechazo y cancelación integral, con historial y bloqueo de filas.
+- Bucket de imágenes y políticas de escritura por negocio; cliente sin acceso a hashes de tracking/código.
+- Clientes Supabase browser/SSR, autorización con getUser y validación de claves públicas.
+- Scripts de provisión, pruebas DB efímeras y suite real Supabase; CI en GitHub Actions.
 
-Corrección de alcance: mismo motor, distintas plataformas y diseños; despliegue/base independientes por negocio. No base SaaS compartida. Arquitectura y ADR-010 actualizados antes de Fase 2.
+## Evidencia
+- `npm run check`: TypeScript y ESLint sin errores/advertencias.
+- `npm test`: 3 unitarias de configuración pública y rechazo de claves privilegiadas.
+- `npm run test:db`: 30 pruebas pasan (27 DB + 3 unitarias), PostgreSQL 17/PostGIS 3.5 real, contenedor efímero. Incluye dos conexiones compitiendo por un pedido, permisos, snapshots, seed repetido, integridad, estados y cancelación.
+- `npm run build`: producción compilada. HTTP 200 en las cuatro rutas; health fase 2/backend no configurado refleja correctamente esta instancia sin credenciales.
+- Supabase completo arrancó en GitHub Actions: migraciones/seed reales, Auth email/password owner y driver, RLS/PostgREST, registro público cerrado, provisión solo servicio, hashes privados, escritura Storage por rol y RPC PostGIS.
+- Evidencia de integración y verificación principal: https://github.com/Capybara0606/cybr-delivery/actions/runs/40606348081 (código e8c4c3b). Todos los pasos de verificación superados; usuarios/objetos temporales eliminados por la suite.
+- `git diff --check` y revisión de archivos versionados: sin .env reales ni literales de credenciales.
 
-## Evidencia de Fase 1
-- Node v24.19.0, npm 11.9.0. Next.js 16.4.3, React 19.3.1, TypeScript 6.0.3 y Tailwind 4.3.3 fijados en package-lock.
-- npm run check: TypeScript y ESLint sin errores ni advertencias.
-- npm run build: producción compilada; /, /admin y /driver estáticos; /api/health dinámico.
-- scripts/smoke.py: HTTP 200 en cuatro rutas, 404 en ruta inexistente; health reporta DB sin configurar.
-- Chromium/Playwright: nueve combinaciones de rutas y anchuras 1440/390/320 sin desbordamiento horizontal; navegación admin -> driver correcta, un h1 por página y cero pageerror.
-- Capturas docs/screenshots/phase-1-desktop.png y phase-1-mobile.png. Inspección visual realizada; iconos ajustados a SVG para evitar glifos faltantes.
-- Sin operaciones remotas, cambios en repos existentes ni secretos. Solo Fase 1 implementada.
+## Incidencias resueltas
+1. GitHub integration no podía crear repo (createRepository); usuario lo creó y se subió código conservando su visibilidad pública.
+2. Supabase completo no cabía durante descompresión en el Docker local (96% disco); se canceló y recuperó espacio. Verificación completa trasladada a runner aislado GitHub.
+3. Auth real detectó proveedor email deshabilitado. Se mantiene auth.enable_signup=false con auth.email.enable_signup=true: registro público cerrado y login de empleados provisionados habilitado. Suite repetida y superada.
 
-## Fase 2 — fundación implementada; verificación HTTP integral pendiente
-1. Preparar Supabase CLI y PostgreSQL/PostGIS local de pruebas; aceptación: migraciones aplican desde cero.
-2. Esquema, roles, RLS y funciones de operación; depende de 1. Aceptación: restricciones impiden cruces, escalamiento y transiciones arbitrarias.
-3. Seed demo idempotente Café Aurora; depende de 2. Aceptación: 4 categorías, 12 productos, dos perfiles de repartidor sin contraseñas compartidas.
-4. Clientes Supabase/configuración y contrato de autenticación; aceptación: sin secretos en cliente, modo no configurado explícito. No implementar UI login todavía.
-5. Pruebas DB reales y CI; depende de 2-4. Aceptación: roles anónimo, staff y conductor, integridad, estados y concurrencia probados.
-6. Versionar y publicar repo privado si las credenciales lo permiten, sin publicar el sitio.
-Límite: sin catálogo/checkout UI, administración funcional ni GPS de fases siguientes.
+## Límites
+No hay checkout público, login UI, administración funcional, seguimiento invitado ni GPS. Hay fundación de datos y permisos, no MVP de compra terminado. No se creó proyecto cloud ni se desplegó aplicación. La prueba HTTP usa stack real efímero en CI, no producción.
 
-### Verificación Fase 2 hasta ahora
-- Migraciones aplicadas desde cero y seed repetido sin duplicados en contenedor PostgreSQL/PostGIS independiente.
-- `npm run test:db`: 30 tests pasan (27 base de datos + 3 unitarios), incluida concurrencia con dos conexiones reales.
-- `npm run check`: tipos/lint sin errores ni advertencias. `npm run build`: compilación producción correcta.
-- Supabase completo: intento detenido al llegar a 96% de disco durante descarga/descompresión de servicios. No inició servicios ni se probó Auth/Storage HTTP. Se recuperó espacio al cancelar. Script de integración incluido, no marcado como superado.
-- GitHub: usuario creó https://github.com/Capybara0606/cybr-delivery público tras rechazo de permiso createRepository; remoto configurado para publicación del código.
-
-### Resultado y límites de Fase 2
-Implementados: 17 tablas RLS, PostGIS, 4 migraciones, catálogo seed demo, funciones transaccionales de operación, provisioning de empleados, clientes SDK browser/SSR, validación de claves y CI.
-Verificados: 30 tests, tsc/lint/build y HTTP 200 de las 4 rutas con health fase 2/backend no configurado. `git diff --check` correcto.
-Pendientes de infraestructura: arrancar Supabase completo y ejecutar `npm run test:supabase`; vincular proyecto cloud dedicado y configurar credenciales; no hay autenticación UI. No se certifica Auth/Storage HTTP ni se inicia Fase 3 sin aprobación. No se desplegó el sitio.
-
-### Verificación HTTP remota en CI
-Dado el límite de disco local, se añadió un job separado de GitHub Actions para arrancar Supabase completo y ejecutar la suite Auth/PostgREST/Storage sin imprimir claves. Resultado pendiente de ejecución; no requiere credenciales cloud ni usa datos de producción.
-Código publicado en main: commit 5f8a64e; CI inicial en https://github.com/Capybara0606/cybr-delivery/actions/runs/40605988040.
-
-La primera ejecución de integración real arrancó Supabase y aplicó migraciones/seed correctamente. Pasaron catálogo anónimo, rechazo de datos privados y registro público cerrado. Falló login de empleado: auth.email.enable_signup=false deshabilitaba el proveedor email completo. Se mantiene auth.enable_signup=false y se habilita proveedor email para cuentas provisionadas; se repite suite real (sin darla por aprobada antes del resultado).
+## Siguiente fase
+Fase 3: catálogo conectado y checkout invitado. Crear operación transaccional de compra con precios/opciones/horario/cobertura validados, idempotencia de solicitud, tokens seguros, rate limiting y pruebas de compra. Requiere autorización; las fases 4–8 siguen sin iniciar.
+Antes de conectar una instalación persistente: crear proyecto Supabase dedicado o disponer de entorno local con espacio suficiente; ver SUPABASE.md. No usar bases de NanBites/CYBR VIEW.
