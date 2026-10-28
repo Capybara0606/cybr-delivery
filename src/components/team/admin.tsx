@@ -1,46 +1,1137 @@
 "use client";
-import { useCallback,useEffect,useRef,useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Check,Plus,RefreshCw,LogOut,ArrowUpRight,X,Volume2,VolumeX,Pencil,Trash2 } from "lucide-react";
+import {
+  Check,
+  Plus,
+  RefreshCw,
+  LogOut,
+  ArrowUpRight,
+  X,
+  Volume2,
+  VolumeX,
+  Pencil,
+  Trash2,
+} from "lucide-react";
 import { useModalFocus } from "@/components/use-modal-focus";
 import { installation } from "@/config/installation";
 import { TeamLogin } from "./access";
 import { LocationMap } from "@/components/location-map";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
-import { money,statusLabels } from "@/lib/commerce/contracts";
-type Order={id:string;order_number:number;customer_name:string;customer_phone:string;status:string;total_cents:number;created_at:string;address_id:string};
-type Product={id:string;name:string;description:string;price_cents:number;is_available:boolean;category_id:string;image_path:string|null};
-type Settings={restaurant_id:string;delivery_fee_cents:number;delivery_radius_m:number;is_accepting_orders:boolean;opening_hours:Record<string,string[][]>};
-type Snapshot={role:string;orders:Order[];drivers:{id:string;full_name:string;is_available:boolean;user_id:string|null}[];assignments:{order_id:string;driver_id:string}[];products:Product[];categories:{id:string;name:string}[];settings:Settings;dashboard:{orders:number;active:number;delivered:number;revenue_cents:number}};
-type Detail={order:Order;items:{product_name:string;quantity:number;line_total_cents:number;order_item_options:{value_name:string}[]}[];address:{address:string;instructions:string};history:{new_status:string;event:string;created_at:string}[]};
-const weekdays=[['monday','Lunes'],['tuesday','Martes'],['wednesday','Miércoles'],['thursday','Jueves'],['friday','Viernes'],['saturday','Sábado'],['sunday','Domingo']];
-const lanes=[{name:"Por aceptar",states:["pending"]},{name:"En cocina",states:["accepted","preparing"]},{name:"Para recoger",states:["ready_for_pickup","assigned"]},{name:"En entrega",states:["picked_up","on_the_way"]}];
-export function Admin(){const [data,setData]=useState<Snapshot|null>(null),[needsLogin,setNeedsLogin]=useState(false),[error,setError]=useState(""),[tab,setTab]=useState("orders"),[busy,setBusy]=useState(false),[product,setProduct]=useState<Partial<Product>|null>(null),[detail,setDetail]=useState<Detail|null>(null),[sound,setSound]=useState(false),[live,setLive]=useState(false),[imagePath,setImagePath]=useState<string|null>(null),[uploading,setUploading]=useState(false);const audio=useRef<AudioContext|null>(null),soundRef=useRef(false);
- useModalFocus(!!product||!!detail,()=>{if(!busy){setProduct(null);setDetail(null);}});
- const load=useCallback(async()=>{try{const r=await fetch("/api/admin");const d=await r.json();if(r.status===401||r.status===403){setNeedsLogin(true);setData(null);return;}if(!r.ok)throw new Error(d.error);setData(d);setNeedsLogin(false);setError("");}catch(e){setError(e instanceof Error?e.message:"No se pudo cargar la operación.");}},[]);
- useEffect(()=>{queueMicrotask(()=>void load());const timer=setInterval(load,10000);return()=>clearInterval(timer);},[load]);
- const authorized=!!data;
- useEffect(()=>{if(!authorized)return;let db:ReturnType<typeof createSupabaseBrowserClient>;try{db=createSupabaseBrowserClient();}catch{return;}const channel=db.channel("order-events-admin").on("postgres_changes",{event:"INSERT",schema:"public",table:"order_events"},payload=>{void load();if(payload.new.status==="pending"&&soundRef.current&&audio.current){const o=audio.current.createOscillator(),g=audio.current.createGain();o.connect(g);g.connect(audio.current.destination);o.frequency.value=740;g.gain.value=.08;o.start();o.stop(audio.current.currentTime+.2);}}).subscribe(status=>setLive(status==="SUBSCRIBED"));return()=>{void db.removeChannel(channel);};},[authorized,load]);
- useEffect(()=>()=>{void audio.current?.close();},[]);
- async function command(body:unknown){setBusy(true);setError("");try{const r=await fetch("/api/admin",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});const d=await r.json();if(!r.ok)throw new Error(d.error);await load();return true;}catch(e){setError(e instanceof Error?e.message:"No se pudo guardar.");return false;}finally{setBusy(false);}}
- async function inspect(id:string){try{const r=await fetch(`/api/admin?order=${id}`);const d=await r.json();if(!r.ok)throw new Error(d.error);setDetail(d);}catch(e){setError(e instanceof Error?e.message:"Error al abrir pedido.");}}
- async function logout(){await fetch("/api/session",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"logout"})});setData(null);setNeedsLogin(true);}
- function toggleSound(){const next=!sound;if(next){audio.current??=new AudioContext();void audio.current.resume();}soundRef.current=next;setSound(next);}
- if(needsLogin)return <TeamLogin target="admin" onLogin={()=>void load()}/>;
- if(!data)return <main id="main" className="workspace"><p className="eyebrow">ADMINISTRACIÓN / {installation.restaurant.name.toUpperCase()}</p><h1>Preparando<br/><span>tu operación.</span></h1>{error?<p className="notice" role="alert">{error}</p>:<p className="empty-state"><RefreshCw className="spin" size={18}/> Verificando acceso…</p>}<button className="outline-button" onClick={()=>void load()}>Reintentar</button><Link href="/" className="text-link">Volver al restaurante</Link></main>;
- const available=data.drivers.filter(d=>d.is_available&&d.user_id&&!data.assignments.some(a=>a.driver_id===d.id));
- function editProduct(p:Partial<Product>){setImagePath(p.image_path||null);setProduct(p);}
- async function uploadPhoto(file:File|undefined){if(!file)return;if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>5*1024*1024){setError("Usa JPG, PNG o WebP de hasta 5 MB.");return;}setUploading(true);setError("");try{const db=createSupabaseBrowserClient(),extension=file.type==='image/jpeg'?'jpg':file.type==='image/png'?'png':'webp';const path=`${data!.settings.restaurant_id}/${crypto.randomUUID()}.${extension}`;const {error}=await db.storage.from('product-images').upload(path,file,{contentType:file.type});if(error)throw new Error("No se pudo subir la imagen. Revisa tus permisos.");setImagePath(path);}catch(e){setError(e instanceof Error?e.message:"No se pudo subir la imagen.");}finally{setUploading(false);}}
- async function saveProduct(e:React.FormEvent<HTMLFormElement>){e.preventDefault();const f=new FormData(e.currentTarget);if(await command({action:"save_product",...(product?.id?{id:product.id}:{}),name:f.get("name"),description:f.get("description"),category_id:f.get("category_id"),price_cents:Math.round(Number(f.get("price"))*100),is_available:f.get("available")==="on",image_path:imagePath})){setProduct(null);}}
- return <><header className="team-header"><Link href="/" className="team-brand">CYBR <span>/ {installation.restaurant.name.toUpperCase()}</span></Link><div><span className="outline-tag">{data.role==="owner"?"PROPIETARIO":"PERSONAL"}</span><button aria-label="Cerrar sesión" onClick={()=>void logout()}><LogOut size={17}/></button></div></header><main id="main" className="admin-main"><div className="team-title"><div><p className="eyebrow">/ CONTROL DE OPERACIÓN</p><h1>Tu cocina.<span> En marcha.</span></h1></div><span className="sync-state"><span className="dot"/>{live?"ACTUALIZACIÓN EN VIVO":"RESPALDO CADA 10 S"}</span></div><div className="metric-grid"><div><span>PEDIDOS TOTALES</span><strong>{data.dashboard.orders}</strong></div><div><span>EN OPERACIÓN</span><strong>{data.dashboard.active}</strong></div><div><span>ENTREGADOS</span><strong>{data.dashboard.delivered}</strong></div><div><span>VENTAS ENTREGADAS / USD</span><strong>{money(data.dashboard.revenue_cents)}</strong></div></div><div className="admin-toolbar"><nav aria-label="Secciones de administración">{[['orders','Pedidos'],['history','Historial'],['products','Productos'],['categories','Categorías'],['fleet','Flota'],...(data.role==="owner"?[["settings","Configuración"]]:[])].map(([key,label])=><button key={key} aria-pressed={tab===key} onClick={()=>setTab(key)}>{label}</button>)}</nav><div><button className="icon-button" title={sound?"Desactivar aviso sonoro":"Activar aviso sonoro"} aria-label={sound?"Desactivar aviso sonoro":"Activar aviso sonoro"} onClick={toggleSound}>{sound?<Volume2 size={17}/>:<VolumeX size={17}/>}</button><button className="icon-button" aria-label="Actualizar pedidos" onClick={()=>void load()}><RefreshCw size={17}/></button></div></div>{error&&<p className="notice" role="alert">{error}</p>}
- {tab==="orders"&&<><p className="field-hint">{sound?"Aviso sonoro activado para nuevos pedidos.":"Activa el aviso sonoro para escuchar nuevos pedidos."} Vista de los últimos 200 pedidos; las métricas incluyen todo el historial.</p><div className="kanban">{lanes.map(lane=><section className="kanban-lane" key={lane.name}><h2>{lane.name}<span>{data.orders.filter(o=>lane.states.includes(o.status)).length}</span></h2>{data.orders.filter(o=>lane.states.includes(o.status)).map(o=><article className="order-card" key={o.id}><button className="order-card-title" onClick={()=>void inspect(o.id)}><span>#{o.order_number}</span><ArrowUpRight size={15}/></button><strong>{o.customer_name}</strong><p>{statusLabels[o.status]}</p><div className="order-card-meta"><span>{money(o.total_cents)}</span><span>{new Date(o.created_at).toLocaleTimeString("es-SV",{hour:"2-digit",minute:"2-digit",timeZone:"America/El_Salvador"})}</span></div><div className="order-actions">{o.status==="pending"&&<button className="button" disabled={busy} onClick={()=>void command({action:"advance",order_id:o.id,status:"accepted"})}>Aceptar <Check size={13}/></button>}{o.status==="accepted"&&<button className="button" disabled={busy} onClick={()=>void command({action:"advance",order_id:o.id,status:"preparing"})}>Preparar</button>}{o.status==="preparing"&&<button className="button" disabled={busy} onClick={()=>void command({action:"advance",order_id:o.id,status:"ready_for_pickup"})}>Listo para recoger</button>}{o.status==="ready_for_pickup"&&<form onSubmit={e=>{e.preventDefault();const f=new FormData(e.currentTarget);void command({action:"assign",order_id:o.id,driver_id:f.get("driver")});}}><select name="driver" required aria-label={`Repartidor para pedido ${o.order_number}`} defaultValue=""><option value="" disabled>Elige repartidor</option>{available.map(d=><option value={d.id} key={d.id}>{d.full_name}</option>)}</select><button className="button full" disabled={busy||!available.length}>Asignar</button></form>}{(data.role==="owner"||!["picked_up","on_the_way"].includes(o.status))&&<button className="danger-link" disabled={busy} onClick={()=>{if(window.confirm(`¿Cancelar el pedido #${o.order_number}?`))void command({action:"cancel",order_id:o.id});}}>{o.status==="pending"?"Rechazar pedido":"Cancelar"}</button>}</div></article>)}{!data.orders.some(o=>lane.states.includes(o.status))&&<p className="lane-empty">Sin pedidos</p>}</section>)}</div></>}
- {tab==="history"&&<section className="panel"><h2>Últimos pedidos</h2><div className="table-scroll"><table><thead><tr><th>Pedido</th><th>Cliente</th><th>Estado</th><th>Total</th><th>Fecha</th></tr></thead><tbody>{data.orders.map(o=><tr key={o.id}><td><button className="text-link" onClick={()=>void inspect(o.id)}>#{o.order_number}</button></td><td>{o.customer_name}</td><td>{statusLabels[o.status]}</td><td>{money(o.total_cents)}</td><td>{new Date(o.created_at).toLocaleString("es-SV",{timeZone:"America/El_Salvador"})}</td></tr>)}</tbody></table></div>{!data.orders.length&&<p className="empty-state">Todavía no hay pedidos.</p>}</section>}
- {tab==="products"&&<section className="panel"><div className="section-heading"><h2>Tu menú</h2><button className="button" onClick={()=>editProduct({is_available:true})}>Nuevo producto <Plus size={16}/></button></div><div className="table-scroll"><table><thead><tr><th>Producto</th><th>Precio</th><th>Disponibilidad</th><th>Acciones</th></tr></thead><tbody>{data.products.map(p=><tr key={p.id}><td>{p.name}</td><td>{money(p.price_cents)}</td><td><button className={p.is_available?"status-on":"status-off"} disabled={busy} onClick={()=>void command({action:"save_product",id:p.id,name:p.name,description:p.description,category_id:p.category_id,price_cents:p.price_cents,is_available:!p.is_available})}>{p.is_available?"Disponible":"Agotado"}</button></td><td><button className="icon-button" aria-label={`Editar ${p.name}`} onClick={()=>editProduct(p)}><Pencil size={15}/></button><button className="icon-button" aria-label={`Eliminar ${p.name}`} disabled={busy} onClick={()=>{if(window.confirm(`¿Eliminar ${p.name}? Si ya tiene pedidos, se marcará como agotado para conservar el historial.`))void command({action:"delete_product",id:p.id});}}><Trash2 size={15}/></button></td></tr>)}</tbody></table></div></section>}
- {tab==="categories"&&<section className="panel"><h2>Categorías</h2><form className="inline-form" onSubmit={e=>{e.preventDefault();const f=new FormData(e.currentTarget);const form=e.currentTarget;void command({action:"save_category",name:f.get("name")}).then(ok=>{if(ok)form.reset();});}}><input name="name" aria-label="Nombre de nueva categoría" placeholder="Nueva categoría" required maxLength={100}/><button className="button" disabled={busy}>Crear <Plus size={15}/></button></form>{data.categories.map(c=><form className="inline-form" key={c.id} onSubmit={e=>{e.preventDefault();const f=new FormData(e.currentTarget);void command({action:"save_category",id:c.id,name:f.get("name")});}}><input aria-label={`Nombre de ${c.name}`} defaultValue={c.name} name="name" required maxLength={100}/><button className="outline-button" disabled={busy}>Guardar</button><button type="button" className="icon-button" aria-label={`Eliminar ${c.name}`} disabled={busy} onClick={()=>{if(window.confirm(`¿Eliminar la categoría ${c.name}? Debe estar vacía.`))void command({action:"delete_category",id:c.id});}}><Trash2 size={15}/></button></form>)}</section>}
- {tab==="fleet"&&<section className="panel"><h2>Tu flota</h2><p className="field-hint">Una entrega activa por repartidor. Los perfiles sin cuenta deben vincularse antes de operar.</p><div className="fleet-grid">{data.drivers.map(d=><article className="driver-card" key={d.id}><div className="driver-avatar">{d.full_name[0]}</div><h3>{d.full_name}</h3><span className={d.is_available?"status-on":"status-off"}>{!d.user_id?"Cuenta pendiente":d.is_available?"En turno":"Fuera de turno"}</span><p>{data.assignments.filter(a=>a.driver_id===d.id).length} entrega activa</p></article>)}</div><LiveFleet/></section>}
- {tab==="settings"&&<SettingsForm settings={data.settings} busy={busy} save={command}/>}
- </main>{product&&<div className="modal-backdrop" onClick={()=>setProduct(null)}><section className="dialog editor-dialog" role="dialog" aria-modal="true" aria-labelledby="edit-product-title" onClick={e=>e.stopPropagation()}><button className="close-button" aria-label="Cerrar editor" onClick={()=>setProduct(null)}><X/></button><h2 id="edit-product-title">{product.id?"Editar producto":"Nuevo producto"}</h2><form onSubmit={saveProduct}><label className="field">Nombre<input name="name" defaultValue={product.name} required maxLength={120}/></label><label className="field">Descripción<textarea name="description" defaultValue={product.description||""} maxLength={1000}/></label><label className="field">Categoría<select name="category_id" required defaultValue={product.category_id||data.categories[0]?.id}>{data.categories.map(c=><option value={c.id} key={c.id}>{c.name}</option>)}</select></label><label className="field">Precio USD<input name="price" type="number" min={0} max={10000} step=".01" defaultValue={(product.price_cents||0)/100} required/></label><label className="field">Fotografía (JPG, PNG o WebP, hasta 5 MB)<input type="file" accept="image/jpeg,image/png,image/webp" onChange={e=>void uploadPhoto(e.currentTarget.files?.[0])} disabled={uploading}/></label>{uploading&&<p className="field-hint">Subiendo imagen…</p>}{imagePath&&<div className="photo-editor"><p className="field-hint">Imagen lista para guardar.</p><button type="button" className="text-link" onClick={()=>setImagePath(null)}>Quitar imagen</button></div>}<label className="choice"><input name="available" type="checkbox" defaultChecked={product.is_available}/>Disponible para pedidos</label>{error&&<p className="notice">{error}</p>}<button className="button full" disabled={busy||uploading}>Guardar producto <Check size={16}/></button></form></section></div>}
- {detail&&<div className="modal-backdrop" onClick={()=>setDetail(null)}><section className="dialog editor-dialog" role="dialog" aria-modal="true" aria-labelledby="order-detail-title" onClick={e=>e.stopPropagation()}><button className="close-button" aria-label="Cerrar detalle" onClick={()=>setDetail(null)}><X/></button><p className="eyebrow">{statusLabels[detail.order.status]}</p><h2 id="order-detail-title">Pedido #{detail.order.order_number}</h2><p>{detail.order.customer_name} · <a href={`tel:${detail.order.customer_phone}`}>{detail.order.customer_phone}</a></p><p className="field-hint">{detail.address?.address}<br/>{detail.address?.instructions}</p>{detail.items?.map((i,n)=><div className="tracking-item" key={n}><div>{i.quantity} × {i.product_name}<p className="field-hint">{i.order_item_options?.map(o=>o.value_name).join(", ")}</p></div><strong>{money(i.line_total_cents)}</strong></div>)}<div className="tracking-item total"><strong>Total efectivo</strong><strong>{money(detail.order.total_cents)}</strong></div><h3>Historial</h3>{detail.history?.map((h,i)=><p className="field-hint" key={i}>{statusLabels[h.new_status]} · {h.event} · {new Date(h.created_at).toLocaleString("es-SV",{timeZone:"America/El_Salvador"})}</p>)}</section></div>}</>;
+import { money, statusLabels } from "@/lib/commerce/contracts";
+type Order = {
+  id: string;
+  order_number: number;
+  customer_name: string;
+  customer_phone: string;
+  status: string;
+  total_cents: number;
+  created_at: string;
+  address_id: string;
+};
+type Product = {
+  id: string;
+  name: string;
+  description: string;
+  price_cents: number;
+  is_available: boolean;
+  category_id: string;
+  image_path: string | null;
+};
+type Settings = {
+  restaurant_id: string;
+  delivery_fee_cents: number;
+  delivery_radius_m: number;
+  is_accepting_orders: boolean;
+  opening_hours: Record<string, string[][]>;
+};
+type Snapshot = {
+  role: string;
+  orders: Order[];
+  drivers: {
+    id: string;
+    full_name: string;
+    is_available: boolean;
+    user_id: string | null;
+  }[];
+  assignments: { order_id: string; driver_id: string }[];
+  products: Product[];
+  categories: { id: string; name: string }[];
+  settings: Settings;
+  dashboard: {
+    orders: number;
+    active: number;
+    delivered: number;
+    revenue_cents: number;
+  };
+};
+type Detail = {
+  order: Order;
+  items: {
+    product_name: string;
+    quantity: number;
+    line_total_cents: number;
+    order_item_options: { value_name: string }[];
+  }[];
+  address: { address: string; instructions: string };
+  history: { new_status: string; event: string; created_at: string }[];
+};
+const weekdays = [
+  ["monday", "Lunes"],
+  ["tuesday", "Martes"],
+  ["wednesday", "Miércoles"],
+  ["thursday", "Jueves"],
+  ["friday", "Viernes"],
+  ["saturday", "Sábado"],
+  ["sunday", "Domingo"],
+];
+const lanes = [
+  { name: "Por aceptar", states: ["pending"] },
+  { name: "En cocina", states: ["accepted", "preparing"] },
+  { name: "Para recoger", states: ["ready_for_pickup", "assigned"] },
+  { name: "En entrega", states: ["picked_up", "on_the_way"] },
+];
+export function Admin() {
+  const [data, setData] = useState<Snapshot | null>(null),
+    [needsLogin, setNeedsLogin] = useState(false),
+    [error, setError] = useState(""),
+    [tab, setTab] = useState("orders"),
+    [busy, setBusy] = useState(false),
+    [product, setProduct] = useState<Partial<Product> | null>(null),
+    [detail, setDetail] = useState<Detail | null>(null),
+    [sound, setSound] = useState(false),
+    [live, setLive] = useState(false),
+    [imagePath, setImagePath] = useState<string | null>(null),
+    [uploading, setUploading] = useState(false);
+  const audio = useRef<AudioContext | null>(null),
+    soundRef = useRef(false);
+  useModalFocus(!!product || !!detail, () => {
+    if (!busy) {
+      setProduct(null);
+      setDetail(null);
+    }
+  });
+  const load = useCallback(async () => {
+    try {
+      const r = await fetch("/api/admin");
+      const d = await r.json();
+      if (r.status === 401 || r.status === 403) {
+        setNeedsLogin(true);
+        setData(null);
+        return;
+      }
+      if (!r.ok) throw new Error(d.error);
+      setData(d);
+      setNeedsLogin(false);
+      setError("");
+    } catch (e) {
+      setError(
+        e instanceof Error ? e.message : "No se pudo cargar la operación.",
+      );
+    }
+  }, []);
+  useEffect(() => {
+    queueMicrotask(() => void load());
+    const timer = setInterval(load, 10000);
+    return () => clearInterval(timer);
+  }, [load]);
+  const authorized = !!data;
+  useEffect(() => {
+    if (!authorized) return;
+    let db: ReturnType<typeof createSupabaseBrowserClient>;
+    try {
+      db = createSupabaseBrowserClient();
+    } catch {
+      return;
+    }
+    const channel = db
+      .channel("order-events-admin")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "order_events" },
+        (payload) => {
+          void load();
+          if (
+            payload.new.status === "pending" &&
+            soundRef.current &&
+            audio.current
+          ) {
+            const o = audio.current.createOscillator(),
+              g = audio.current.createGain();
+            o.connect(g);
+            g.connect(audio.current.destination);
+            o.frequency.value = 740;
+            g.gain.value = 0.08;
+            o.start();
+            o.stop(audio.current.currentTime + 0.2);
+          }
+        },
+      )
+      .subscribe((status) => setLive(status === "SUBSCRIBED"));
+    return () => {
+      void db.removeChannel(channel);
+    };
+  }, [authorized, load]);
+  useEffect(
+    () => () => {
+      void audio.current?.close();
+    },
+    [],
+  );
+  async function command(body: unknown) {
+    setBusy(true);
+    setError("");
+    try {
+      const r = await fetch("/api/admin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error);
+      await load();
+      return true;
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "No se pudo guardar.");
+      return false;
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function inspect(id: string) {
+    try {
+      const r = await fetch(`/api/admin?order=${id}`);
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error);
+      setDetail(d);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Error al abrir pedido.");
+    }
+  }
+  async function logout() {
+    await fetch("/api/session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "logout" }),
+    });
+    setData(null);
+    setNeedsLogin(true);
+  }
+  function toggleSound() {
+    const next = !sound;
+    if (next) {
+      audio.current ??= new AudioContext();
+      void audio.current.resume();
+    }
+    soundRef.current = next;
+    setSound(next);
+  }
+  if (needsLogin)
+    return <TeamLogin target="admin" onLogin={() => void load()} />;
+  if (!data)
+    return (
+      <main id="main" className="workspace">
+        <p className="eyebrow">
+          ADMINISTRACIÓN / {installation.restaurant.name.toUpperCase()}
+        </p>
+        <h1>
+          Preparando
+          <br />
+          <span>tu operación.</span>
+        </h1>
+        {error ? (
+          <p className="notice" role="alert">
+            {error}
+          </p>
+        ) : (
+          <p className="empty-state">
+            <RefreshCw className="spin" size={18} /> Verificando acceso…
+          </p>
+        )}
+        <button className="outline-button" onClick={() => void load()}>
+          Reintentar
+        </button>
+        <Link href="/" className="text-link">
+          Volver al restaurante
+        </Link>
+      </main>
+    );
+  const available = data.drivers.filter(
+    (d) =>
+      d.is_available &&
+      d.user_id &&
+      !data.assignments.some((a) => a.driver_id === d.id),
+  );
+  function editProduct(p: Partial<Product>) {
+    setImagePath(p.image_path || null);
+    setProduct(p);
+  }
+  async function uploadPhoto(file: File | undefined) {
+    if (!file) return;
+    if (
+      !["image/jpeg", "image/png", "image/webp"].includes(file.type) ||
+      file.size > 5 * 1024 * 1024
+    ) {
+      setError("Usa JPG, PNG o WebP de hasta 5 MB.");
+      return;
+    }
+    setUploading(true);
+    setError("");
+    try {
+      const db = createSupabaseBrowserClient(),
+        extension =
+          file.type === "image/jpeg"
+            ? "jpg"
+            : file.type === "image/png"
+              ? "png"
+              : "webp";
+      const path = `${data!.settings.restaurant_id}/${crypto.randomUUID()}.${extension}`;
+      const { error } = await db.storage
+        .from("product-images")
+        .upload(path, file, { contentType: file.type });
+      if (error)
+        throw new Error("No se pudo subir la imagen. Revisa tus permisos.");
+      setImagePath(path);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "No se pudo subir la imagen.");
+    } finally {
+      setUploading(false);
+    }
+  }
+  async function saveProduct(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const f = new FormData(e.currentTarget);
+    if (
+      await command({
+        action: "save_product",
+        ...(product?.id ? { id: product.id } : {}),
+        name: f.get("name"),
+        description: f.get("description"),
+        category_id: f.get("category_id"),
+        price_cents: Math.round(Number(f.get("price")) * 100),
+        is_available: f.get("available") === "on",
+        image_path: imagePath,
+      })
+    ) {
+      setProduct(null);
+    }
+  }
+  return (
+    <>
+      <header className="team-header">
+        <Link href="/" className="team-brand">
+          CYBR <span>/ {installation.restaurant.name.toUpperCase()}</span>
+        </Link>
+        <div>
+          <span className="outline-tag">
+            {data.role === "owner" ? "PROPIETARIO" : "PERSONAL"}
+          </span>
+          <button aria-label="Cerrar sesión" onClick={() => void logout()}>
+            <LogOut size={17} />
+          </button>
+        </div>
+      </header>
+      <main id="main" className="admin-main">
+        <div className="team-title">
+          <div>
+            <p className="eyebrow">/ CONTROL DE OPERACIÓN</p>
+            <h1>
+              Tu cocina.<span> En marcha.</span>
+            </h1>
+          </div>
+          <span className="sync-state">
+            <span className="dot" />
+            {live ? "ACTUALIZACIÓN EN VIVO" : "RESPALDO CADA 10 S"}
+          </span>
+        </div>
+        <div className="metric-grid">
+          <div>
+            <span>PEDIDOS TOTALES</span>
+            <strong>{data.dashboard.orders}</strong>
+          </div>
+          <div>
+            <span>EN OPERACIÓN</span>
+            <strong>{data.dashboard.active}</strong>
+          </div>
+          <div>
+            <span>ENTREGADOS</span>
+            <strong>{data.dashboard.delivered}</strong>
+          </div>
+          <div>
+            <span>VENTAS ENTREGADAS / USD</span>
+            <strong>{money(data.dashboard.revenue_cents)}</strong>
+          </div>
+        </div>
+        <div className="admin-toolbar">
+          <nav aria-label="Secciones de administración">
+            {[
+              ["orders", "Pedidos"],
+              ["history", "Historial"],
+              ["products", "Productos"],
+              ["categories", "Categorías"],
+              ["fleet", "Flota"],
+              ...(data.role === "owner" ? [["settings", "Configuración"]] : []),
+            ].map(([key, label]) => (
+              <button
+                key={key}
+                aria-pressed={tab === key}
+                onClick={() => setTab(key)}
+              >
+                {label}
+              </button>
+            ))}
+          </nav>
+          <div>
+            <button
+              className="icon-button"
+              title={sound ? "Desactivar aviso sonoro" : "Activar aviso sonoro"}
+              aria-label={
+                sound ? "Desactivar aviso sonoro" : "Activar aviso sonoro"
+              }
+              onClick={toggleSound}
+            >
+              {sound ? <Volume2 size={17} /> : <VolumeX size={17} />}
+            </button>
+            <button
+              className="icon-button"
+              aria-label="Actualizar pedidos"
+              onClick={() => void load()}
+            >
+              <RefreshCw size={17} />
+            </button>
+          </div>
+        </div>
+        {error && (
+          <p className="notice" role="alert">
+            {error}
+          </p>
+        )}
+        {tab === "orders" && (
+          <>
+            <p className="field-hint">
+              {sound
+                ? "Aviso sonoro activado para nuevos pedidos."
+                : "Activa el aviso sonoro para escuchar nuevos pedidos."}{" "}
+              Vista de los últimos 200 pedidos; las métricas incluyen todo el
+              historial.
+            </p>
+            <div className="kanban">
+              {lanes.map((lane) => (
+                <section className="kanban-lane" key={lane.name}>
+                  <h2>
+                    {lane.name}
+                    <span>
+                      {
+                        data.orders.filter((o) =>
+                          lane.states.includes(o.status),
+                        ).length
+                      }
+                    </span>
+                  </h2>
+                  {data.orders
+                    .filter((o) => lane.states.includes(o.status))
+                    .map((o) => (
+                      <article className="order-card" key={o.id}>
+                        <button
+                          className="order-card-title"
+                          onClick={() => void inspect(o.id)}
+                        >
+                          <span>#{o.order_number}</span>
+                          <ArrowUpRight size={15} />
+                        </button>
+                        <strong>{o.customer_name}</strong>
+                        <p>{statusLabels[o.status]}</p>
+                        <div className="order-card-meta">
+                          <span>{money(o.total_cents)}</span>
+                          <span>
+                            {new Date(o.created_at).toLocaleTimeString(
+                              "es-SV",
+                              {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                timeZone: "America/El_Salvador",
+                              },
+                            )}
+                          </span>
+                        </div>
+                        <div className="order-actions">
+                          {o.status === "pending" && (
+                            <button
+                              className="button"
+                              disabled={busy}
+                              onClick={() =>
+                                void command({
+                                  action: "advance",
+                                  order_id: o.id,
+                                  status: "accepted",
+                                })
+                              }
+                            >
+                              Aceptar <Check size={13} />
+                            </button>
+                          )}
+                          {o.status === "accepted" && (
+                            <button
+                              className="button"
+                              disabled={busy}
+                              onClick={() =>
+                                void command({
+                                  action: "advance",
+                                  order_id: o.id,
+                                  status: "preparing",
+                                })
+                              }
+                            >
+                              Preparar
+                            </button>
+                          )}
+                          {o.status === "preparing" && (
+                            <button
+                              className="button"
+                              disabled={busy}
+                              onClick={() =>
+                                void command({
+                                  action: "advance",
+                                  order_id: o.id,
+                                  status: "ready_for_pickup",
+                                })
+                              }
+                            >
+                              Listo para recoger
+                            </button>
+                          )}
+                          {o.status === "ready_for_pickup" && (
+                            <form
+                              onSubmit={(e) => {
+                                e.preventDefault();
+                                const f = new FormData(e.currentTarget);
+                                void command({
+                                  action: "assign",
+                                  order_id: o.id,
+                                  driver_id: f.get("driver"),
+                                });
+                              }}
+                            >
+                              <select
+                                name="driver"
+                                required
+                                aria-label={`Repartidor para pedido ${o.order_number}`}
+                                defaultValue=""
+                              >
+                                <option value="" disabled>
+                                  Elige repartidor
+                                </option>
+                                {available.map((d) => (
+                                  <option value={d.id} key={d.id}>
+                                    {d.full_name}
+                                  </option>
+                                ))}
+                              </select>
+                              <button
+                                className="button full"
+                                disabled={busy || !available.length}
+                              >
+                                Asignar
+                              </button>
+                            </form>
+                          )}
+                          {(data.role === "owner" ||
+                            !["picked_up", "on_the_way"].includes(
+                              o.status,
+                            )) && (
+                            <button
+                              className="danger-link"
+                              disabled={busy}
+                              onClick={() => {
+                                if (
+                                  window.confirm(
+                                    `¿Cancelar el pedido #${o.order_number}?`,
+                                  )
+                                )
+                                  void command({
+                                    action: "cancel",
+                                    order_id: o.id,
+                                  });
+                              }}
+                            >
+                              {o.status === "pending"
+                                ? "Rechazar pedido"
+                                : "Cancelar"}
+                            </button>
+                          )}
+                        </div>
+                      </article>
+                    ))}
+                  {!data.orders.some((o) => lane.states.includes(o.status)) && (
+                    <p className="lane-empty">Sin pedidos</p>
+                  )}
+                </section>
+              ))}
+            </div>
+          </>
+        )}
+        {tab === "history" && (
+          <section className="panel">
+            <h2>Últimos pedidos</h2>
+            <div className="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Pedido</th>
+                    <th>Cliente</th>
+                    <th>Estado</th>
+                    <th>Total</th>
+                    <th>Fecha</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.orders.map((o) => (
+                    <tr key={o.id}>
+                      <td>
+                        <button
+                          className="text-link"
+                          onClick={() => void inspect(o.id)}
+                        >
+                          #{o.order_number}
+                        </button>
+                      </td>
+                      <td>{o.customer_name}</td>
+                      <td>{statusLabels[o.status]}</td>
+                      <td>{money(o.total_cents)}</td>
+                      <td>
+                        {new Date(o.created_at).toLocaleString("es-SV", {
+                          timeZone: "America/El_Salvador",
+                        })}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {!data.orders.length && (
+              <p className="empty-state">Todavía no hay pedidos.</p>
+            )}
+          </section>
+        )}
+        {tab === "products" && (
+          <section className="panel">
+            <div className="section-heading">
+              <h2>Tu menú</h2>
+              <button
+                className="button"
+                onClick={() => editProduct({ is_available: true })}
+              >
+                Nuevo producto <Plus size={16} />
+              </button>
+            </div>
+            <div className="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Producto</th>
+                    <th>Precio</th>
+                    <th>Disponibilidad</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.products.map((p) => (
+                    <tr key={p.id}>
+                      <td>{p.name}</td>
+                      <td>{money(p.price_cents)}</td>
+                      <td>
+                        <button
+                          className={
+                            p.is_available ? "status-on" : "status-off"
+                          }
+                          disabled={busy}
+                          onClick={() =>
+                            void command({
+                              action: "save_product",
+                              id: p.id,
+                              name: p.name,
+                              description: p.description,
+                              category_id: p.category_id,
+                              price_cents: p.price_cents,
+                              is_available: !p.is_available,
+                            })
+                          }
+                        >
+                          {p.is_available ? "Disponible" : "Agotado"}
+                        </button>
+                      </td>
+                      <td>
+                        <button
+                          className="icon-button"
+                          aria-label={`Editar ${p.name}`}
+                          onClick={() => editProduct(p)}
+                        >
+                          <Pencil size={15} />
+                        </button>
+                        <button
+                          className="icon-button"
+                          aria-label={`Eliminar ${p.name}`}
+                          disabled={busy}
+                          onClick={() => {
+                            if (
+                              window.confirm(
+                                `¿Eliminar ${p.name}? Si ya tiene pedidos, se marcará como agotado para conservar el historial.`,
+                              )
+                            )
+                              void command({
+                                action: "delete_product",
+                                id: p.id,
+                              });
+                          }}
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
+        {tab === "categories" && (
+          <section className="panel">
+            <h2>Categorías</h2>
+            <form
+              className="inline-form"
+              onSubmit={(e) => {
+                e.preventDefault();
+                const f = new FormData(e.currentTarget);
+                const form = e.currentTarget;
+                void command({
+                  action: "save_category",
+                  name: f.get("name"),
+                }).then((ok) => {
+                  if (ok) form.reset();
+                });
+              }}
+            >
+              <input
+                name="name"
+                aria-label="Nombre de nueva categoría"
+                placeholder="Nueva categoría"
+                required
+                maxLength={100}
+              />
+              <button className="button" disabled={busy}>
+                Crear <Plus size={15} />
+              </button>
+            </form>
+            {data.categories.map((c) => (
+              <form
+                className="inline-form"
+                key={c.id}
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const f = new FormData(e.currentTarget);
+                  void command({
+                    action: "save_category",
+                    id: c.id,
+                    name: f.get("name"),
+                  });
+                }}
+              >
+                <input
+                  aria-label={`Nombre de ${c.name}`}
+                  defaultValue={c.name}
+                  name="name"
+                  required
+                  maxLength={100}
+                />
+                <button className="outline-button" disabled={busy}>
+                  Guardar
+                </button>
+                <button
+                  type="button"
+                  className="icon-button"
+                  aria-label={`Eliminar ${c.name}`}
+                  disabled={busy}
+                  onClick={() => {
+                    if (
+                      window.confirm(
+                        `¿Eliminar la categoría ${c.name}? Debe estar vacía.`,
+                      )
+                    )
+                      void command({ action: "delete_category", id: c.id });
+                  }}
+                >
+                  <Trash2 size={15} />
+                </button>
+              </form>
+            ))}
+          </section>
+        )}
+        {tab === "fleet" && (
+          <section className="panel">
+            <h2>Tu flota</h2>
+            <p className="field-hint">
+              Una entrega activa por repartidor. Los perfiles sin cuenta deben
+              vincularse antes de operar.
+            </p>
+            <div className="fleet-grid">
+              {data.drivers.map((d) => (
+                <article className="driver-card" key={d.id}>
+                  <div className="driver-avatar">{d.full_name[0]}</div>
+                  <h3>{d.full_name}</h3>
+                  <span className={d.is_available ? "status-on" : "status-off"}>
+                    {!d.user_id
+                      ? "Cuenta pendiente"
+                      : d.is_available
+                        ? "En turno"
+                        : "Fuera de turno"}
+                  </span>
+                  <p>
+                    {
+                      data.assignments.filter((a) => a.driver_id === d.id)
+                        .length
+                    }{" "}
+                    entrega activa
+                  </p>
+                </article>
+              ))}
+            </div>
+            <LiveFleet />
+          </section>
+        )}
+        {tab === "settings" && (
+          <SettingsForm settings={data.settings} busy={busy} save={command} />
+        )}
+      </main>
+      {product && (
+        <div className="modal-backdrop" onClick={() => setProduct(null)}>
+          <section
+            className="dialog editor-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="edit-product-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              className="close-button"
+              aria-label="Cerrar editor"
+              onClick={() => setProduct(null)}
+            >
+              <X />
+            </button>
+            <h2 id="edit-product-title">
+              {product.id ? "Editar producto" : "Nuevo producto"}
+            </h2>
+            <form onSubmit={saveProduct}>
+              <label className="field">
+                Nombre
+                <input
+                  name="name"
+                  defaultValue={product.name}
+                  required
+                  maxLength={120}
+                />
+              </label>
+              <label className="field">
+                Descripción
+                <textarea
+                  name="description"
+                  defaultValue={product.description || ""}
+                  maxLength={1000}
+                />
+              </label>
+              <label className="field">
+                Categoría
+                <select
+                  name="category_id"
+                  required
+                  defaultValue={product.category_id || data.categories[0]?.id}
+                >
+                  {data.categories.map((c) => (
+                    <option value={c.id} key={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="field">
+                Precio USD
+                <input
+                  name="price"
+                  type="number"
+                  min={0}
+                  max={10000}
+                  step=".01"
+                  defaultValue={(product.price_cents || 0) / 100}
+                  required
+                />
+              </label>
+              <label className="field">
+                Fotografía (JPG, PNG o WebP, hasta 5 MB)
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={(e) => void uploadPhoto(e.currentTarget.files?.[0])}
+                  disabled={uploading}
+                />
+              </label>
+              {uploading && <p className="field-hint">Subiendo imagen…</p>}
+              {imagePath && (
+                <div className="photo-editor">
+                  <p className="field-hint">Imagen lista para guardar.</p>
+                  <button
+                    type="button"
+                    className="text-link"
+                    onClick={() => setImagePath(null)}
+                  >
+                    Quitar imagen
+                  </button>
+                </div>
+              )}
+              <label className="choice">
+                <input
+                  name="available"
+                  type="checkbox"
+                  defaultChecked={product.is_available}
+                />
+                Disponible para pedidos
+              </label>
+              {error && <p className="notice">{error}</p>}
+              <button className="button full" disabled={busy || uploading}>
+                Guardar producto <Check size={16} />
+              </button>
+            </form>
+          </section>
+        </div>
+      )}
+      {detail && (
+        <div className="modal-backdrop" onClick={() => setDetail(null)}>
+          <section
+            className="dialog editor-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="order-detail-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              className="close-button"
+              aria-label="Cerrar detalle"
+              onClick={() => setDetail(null)}
+            >
+              <X />
+            </button>
+            <p className="eyebrow">{statusLabels[detail.order.status]}</p>
+            <h2 id="order-detail-title">Pedido #{detail.order.order_number}</h2>
+            <p>
+              {detail.order.customer_name} ·{" "}
+              <a href={`tel:${detail.order.customer_phone}`}>
+                {detail.order.customer_phone}
+              </a>
+            </p>
+            <p className="field-hint">
+              {detail.address?.address}
+              <br />
+              {detail.address?.instructions}
+            </p>
+            {detail.items?.map((i, n) => (
+              <div className="tracking-item" key={n}>
+                <div>
+                  {i.quantity} × {i.product_name}
+                  <p className="field-hint">
+                    {i.order_item_options?.map((o) => o.value_name).join(", ")}
+                  </p>
+                </div>
+                <strong>{money(i.line_total_cents)}</strong>
+              </div>
+            ))}
+            <div className="tracking-item total">
+              <strong>Total efectivo</strong>
+              <strong>{money(detail.order.total_cents)}</strong>
+            </div>
+            <h3>Historial</h3>
+            {detail.history?.map((h, i) => (
+              <p className="field-hint" key={i}>
+                {(
+                  {
+                    order_created: "Pedido recibido",
+                    assignment_accepted: "Asignación aceptada",
+                    assignment_rejected: "Asignación rechazada",
+                    driver_arrived: "Repartidor llegó",
+                  } as Record<string, string>
+                )[h.event] || statusLabels[h.new_status]}{" "}
+                ·{" "}
+                {new Date(h.created_at).toLocaleString("es-SV", {
+                  timeZone: "America/El_Salvador",
+                })}
+              </p>
+            ))}
+          </section>
+        </div>
+      )}
+    </>
+  );
 }
-function SettingsForm({settings,busy,save}:{settings:Settings;busy:boolean;save:(x:unknown)=>Promise<boolean>}){return <section className="panel settings-panel"><h2>Tu operación, a tu medida.</h2><form onSubmit={e=>{e.preventDefault();const f=new FormData(e.currentTarget);const hours=Object.fromEntries(weekdays.map(([key])=>[key,f.get(`${key}_open`)==="on"?[[String(f.get(`${key}_from`)),String(f.get(`${key}_to`))]]:[]]));void save({action:"settings",delivery_fee_cents:Math.round(Number(f.get("fee"))*100),delivery_radius_m:Math.round(Number(f.get("radius"))*1000),is_accepting_orders:f.get("accepting")==="on",opening_hours:hours});}}><label className="choice"><input type="checkbox" name="accepting" defaultChecked={settings.is_accepting_orders}/>Recibir pedidos (dentro del horario)</label><div className="coordinate-inputs"><label className="field">Tarifa de envío / USD<input name="fee" type="number" min={0} max={1000} step=".01" defaultValue={settings.delivery_fee_cents/100} required/></label><label className="field">Radio de cobertura / km<input name="radius" type="number" min={.1} max={50} step=".1" defaultValue={settings.delivery_radius_m/1000} required/></label></div><h3>Horario · El Salvador</h3><p className="field-hint">Cobertura por distancia en línea recta. Horarios del mismo día, sin cruce de medianoche.</p>{weekdays.map(([key,label])=><div className="hours-row" key={key}><label className="choice"><input name={`${key}_open`} type="checkbox" defaultChecked={!!settings.opening_hours[key]?.length}/>{label}</label><input aria-label={`Apertura ${label}`} name={`${key}_from`} type="time" defaultValue={settings.opening_hours[key]?.[0]?.[0]||"07:00"} required/><span>—</span><input aria-label={`Cierre ${label}`} name={`${key}_to`} type="time" defaultValue={settings.opening_hours[key]?.[0]?.[1]||"19:00"} required/></div>)}<button className="button" disabled={busy}>Guardar configuración <Check size={16}/></button></form></section>;}
-function LiveFleet(){const [locations,setLocations]=useState<{driver_name:string;lat:number;lng:number;is_stale:boolean;is_simulated:boolean;recorded_at:string}[]>([]);useEffect(()=>{let cancelled=false;const load=async()=>{try{const r=await fetch("/api/driver/locations");if(r.ok){const d=await r.json();if(!cancelled)setLocations(d.locations);}}catch{}};void load();const timer=setInterval(load,5000);return()=>{cancelled=true;clearInterval(timer);};},[]);return <div className="fleet-live"><h3>Entregas activas</h3>{!locations.length?<p className="field-hint">Sin ubicaciones de entregas activas.</p>:locations.map((p,i)=><div key={i}><LocationMap point={p} label={`Ubicación de ${p.driver_name}`}/><p className={p.is_stale?"notice":"field-hint"}>{p.driver_name} · {p.is_simulated?"SIMULACIÓN · ":""}{p.is_stale?"GPS desactualizado":"GPS recibido"} · <a target="_blank" rel="noreferrer" href={`https://www.openstreetmap.org/?mlat=${p.lat}&mlon=${p.lng}#map=16/${p.lat}/${p.lng}`}>Ver ubicación ↗</a> · {new Date(p.recorded_at).toLocaleTimeString("es-SV",{timeZone:"America/El_Salvador"})}</p></div>)}</div>;}
+function SettingsForm({
+  settings,
+  busy,
+  save,
+}: {
+  settings: Settings;
+  busy: boolean;
+  save: (x: unknown) => Promise<boolean>;
+}) {
+  return (
+    <section className="panel settings-panel">
+      <h2>Tu operación, a tu medida.</h2>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          const f = new FormData(e.currentTarget);
+          const hours = Object.fromEntries(
+            weekdays.map(([key]) => [
+              key,
+              f.get(`${key}_open`) === "on"
+                ? [[String(f.get(`${key}_from`)), String(f.get(`${key}_to`))]]
+                : [],
+            ]),
+          );
+          void save({
+            action: "settings",
+            delivery_fee_cents: Math.round(Number(f.get("fee")) * 100),
+            delivery_radius_m: Math.round(Number(f.get("radius")) * 1000),
+            is_accepting_orders: f.get("accepting") === "on",
+            opening_hours: hours,
+          });
+        }}
+      >
+        <label className="choice">
+          <input
+            type="checkbox"
+            name="accepting"
+            defaultChecked={settings.is_accepting_orders}
+          />
+          Recibir pedidos (dentro del horario)
+        </label>
+        <div className="coordinate-inputs">
+          <label className="field">
+            Tarifa de envío / USD
+            <input
+              name="fee"
+              type="number"
+              min={0}
+              max={1000}
+              step=".01"
+              defaultValue={settings.delivery_fee_cents / 100}
+              required
+            />
+          </label>
+          <label className="field">
+            Radio de cobertura / km
+            <input
+              name="radius"
+              type="number"
+              min={0.1}
+              max={50}
+              step=".1"
+              defaultValue={settings.delivery_radius_m / 1000}
+              required
+            />
+          </label>
+        </div>
+        <h3>Horario · El Salvador</h3>
+        <p className="field-hint">
+          Cobertura por distancia en línea recta. Horarios del mismo día, sin
+          cruce de medianoche.
+        </p>
+        {weekdays.map(([key, label]) => (
+          <div className="hours-row" key={key}>
+            <label className="choice">
+              <input
+                name={`${key}_open`}
+                type="checkbox"
+                defaultChecked={!!settings.opening_hours[key]?.length}
+              />
+              {label}
+            </label>
+            <input
+              aria-label={`Apertura ${label}`}
+              name={`${key}_from`}
+              type="time"
+              defaultValue={settings.opening_hours[key]?.[0]?.[0] || "07:00"}
+              required
+            />
+            <span>—</span>
+            <input
+              aria-label={`Cierre ${label}`}
+              name={`${key}_to`}
+              type="time"
+              defaultValue={settings.opening_hours[key]?.[0]?.[1] || "19:00"}
+              required
+            />
+          </div>
+        ))}
+        <button className="button" disabled={busy}>
+          Guardar configuración <Check size={16} />
+        </button>
+      </form>
+    </section>
+  );
+}
+function LiveFleet() {
+  const [locations, setLocations] = useState<
+    {
+      driver_name: string;
+      lat: number;
+      lng: number;
+      is_stale: boolean;
+      is_simulated: boolean;
+      recorded_at: string;
+    }[]
+  >([]);
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const r = await fetch("/api/driver/locations");
+        if (r.ok) {
+          const d = await r.json();
+          if (!cancelled) setLocations(d.locations);
+        }
+      } catch {}
+    };
+    void load();
+    const timer = setInterval(load, 5000);
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+    };
+  }, []);
+  return (
+    <div className="fleet-live">
+      <h3>Entregas activas</h3>
+      {!locations.length ? (
+        <p className="field-hint">Sin ubicaciones de entregas activas.</p>
+      ) : (
+        locations.map((p, i) => (
+          <div key={i}>
+            <LocationMap point={p} label={`Ubicación de ${p.driver_name}`} />
+            <p className={p.is_stale ? "notice" : "field-hint"}>
+              {p.driver_name} · {p.is_simulated ? "SIMULACIÓN · " : ""}
+              {p.is_stale ? "GPS desactualizado" : "GPS recibido"} ·{" "}
+              <a
+                target="_blank"
+                rel="noreferrer"
+                href={`https://www.openstreetmap.org/?mlat=${p.lat}&mlon=${p.lng}#map=16/${p.lat}/${p.lng}`}
+              >
+                Ver ubicación ↗
+              </a>{" "}
+              ·{" "}
+              {new Date(p.recorded_at).toLocaleTimeString("es-SV", {
+                timeZone: "America/El_Salvador",
+              })}
+            </p>
+          </div>
+        ))
+      )}
+    </div>
+  );
+}

@@ -1,4 +1,46 @@
-import { describe,it,expect } from "vitest";
+import { describe, it, expect } from "vitest";
 import { checkoutSchema } from "../../src/lib/commerce/contracts";
-const payload={name:"Cliente",phone:"+50370000000",address:"Calle ficticia",lat:13.69,lng:-89.21,items:[{product_id:"c0000000-0000-4000-8000-000000000001",quantity:2,options:[]}],idempotency_key:"10000000-0000-4000-8000-000000000001"};
-describe("checkout browser boundary",()=>{it("accepts valid details without account",()=>{expect(checkoutSchema.parse(payload).name).toBe("Cliente");});it("rejects price/status injection and invalid coordinates",()=>{for(const extra of [{total_cents:1},{status:"delivered"},{lat:91}])expect(checkoutSchema.safeParse({...payload,...extra}).success).toBe(false);});it("rejects invalid quantities and oversized baskets",()=>{expect(checkoutSchema.safeParse({...payload,items:[{...payload.items[0],quantity:0}]}).success).toBe(false);expect(checkoutSchema.safeParse({...payload,items:Array(51).fill(payload.items[0])}).success).toBe(false);});});
+const payload = {
+  name: "Cliente",
+  phone: "+50370000000",
+  address: "Calle ficticia",
+  lat: 13.69,
+  lng: -89.21,
+  items: [
+    {
+      product_id: "c0000000-0000-4000-8000-000000000001",
+      quantity: 2,
+      options: [],
+    },
+  ],
+  idempotency_key: "10000000-0000-4000-8000-000000000001",
+};
+describe("checkout browser boundary", () => {
+  it("accepts valid details without account", () => {
+    expect(checkoutSchema.parse(payload).name).toBe("Cliente");
+  });
+  it("rejects price/status injection and invalid coordinates", () => {
+    for (const extra of [
+      { total_cents: 1 },
+      { status: "delivered" },
+      { lat: 91 },
+    ])
+      expect(checkoutSchema.safeParse({ ...payload, ...extra }).success).toBe(
+        false,
+      );
+  });
+  it("rejects invalid quantities and oversized baskets", () => {
+    expect(
+      checkoutSchema.safeParse({
+        ...payload,
+        items: [{ ...payload.items[0], quantity: 0 }],
+      }).success,
+    ).toBe(false);
+    expect(
+      checkoutSchema.safeParse({
+        ...payload,
+        items: Array(51).fill(payload.items[0]),
+      }).success,
+    ).toBe(false);
+  });
+});

@@ -1,3 +1,48 @@
 "use client";
-import { useEffect,useRef } from "react";
-export function useModalFocus(open:boolean,onClose:()=>void){const close=useRef(onClose);useEffect(()=>{close.current=onClose;},[onClose]);useEffect(()=>{if(!open)return;const previous=document.activeElement as HTMLElement|null,overflow=document.body.style.overflow;document.body.style.overflow="hidden";const getItems=()=>Array.from(document.querySelector<HTMLElement>('[role="dialog"]')?.querySelectorAll<HTMLElement>('button:not(:disabled),a[href],input:not(:disabled),select:not(:disabled),textarea:not(:disabled),[tabindex="0"]')||[]).filter(e=>e.getClientRects().length>0);const frame=requestAnimationFrame(()=>getItems()[0]?.focus());const key=(event:KeyboardEvent)=>{if(event.key==="Escape"){event.preventDefault();close.current();}if(event.key==="Tab"){const items=getItems(),first=items[0],last=items.at(-1);if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}}};document.addEventListener('keydown',key);return()=>{cancelAnimationFrame(frame);document.body.style.overflow=overflow;document.removeEventListener('keydown',key);if(previous?.isConnected)previous.focus();};},[open]);}
+import { useEffect, useRef } from "react";
+export function useModalFocus(open: boolean, onClose: () => void) {
+  const close = useRef(onClose);
+  useEffect(() => {
+    close.current = onClose;
+  }, [onClose]);
+  useEffect(() => {
+    if (!open) return;
+    const previous = document.activeElement as HTMLElement | null,
+      overflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const getItems = () =>
+      Array.from(
+        document
+          .querySelector<HTMLElement>('[role="dialog"]')
+          ?.querySelectorAll<HTMLElement>(
+            'button:not(:disabled),a[href],input:not(:disabled),select:not(:disabled),textarea:not(:disabled),[tabindex="0"]',
+          ) || [],
+      ).filter((e) => e.getClientRects().length > 0);
+    const frame = requestAnimationFrame(() => getItems()[0]?.focus());
+    const key = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        close.current();
+      }
+      if (event.key === "Tab") {
+        const items = getItems(),
+          first = items[0],
+          last = items.at(-1);
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last?.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first?.focus();
+        }
+      }
+    };
+    document.addEventListener("keydown", key);
+    return () => {
+      cancelAnimationFrame(frame);
+      document.body.style.overflow = overflow;
+      document.removeEventListener("keydown", key);
+      if (previous?.isConnected) previous.focus();
+    };
+  }, [open]);
+}

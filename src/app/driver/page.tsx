@@ -1,3 +1,5 @@
 import { Driver } from "@/components/team/driver";
-export const metadata={title:"Repartidores"};
-export default function Page(){return <Driver/>;}
+export const metadata = { title: "Repartidores" };
+export default function Page() {
+  return <Driver />;
+}

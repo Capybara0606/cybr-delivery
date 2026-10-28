@@ -1,4 +1,11 @@
-import { mkdirSync,copyFileSync } from 'node:fs';
-mkdirSync('public/maplibre',{recursive:true});
-for(const file of ['maplibre-gl-worker.mjs','maplibre-gl-shared.mjs'])copyFileSync(`node_modules/maplibre-gl/dist/${file}`,`public/maplibre/${file}`);
-copyFileSync('node_modules/maplibre-gl/LICENSE.txt','public/maplibre/LICENSE.txt');
+import { mkdirSync, copyFileSync } from "node:fs";
+mkdirSync("public/maplibre", { recursive: true });
+for (const file of ["maplibre-gl-worker.mjs", "maplibre-gl-shared.mjs"])
+  copyFileSync(
+    `node_modules/maplibre-gl/dist/${file}`,
+    `public/maplibre/${file}`,
+  );
+copyFileSync(
+  "node_modules/maplibre-gl/LICENSE.txt",
+  "public/maplibre/LICENSE.txt",
+);

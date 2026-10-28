@@ -1,2 +1,65 @@
-import { apiFailure, publicBackend, restaurantId, noStore } from "@/lib/server/backend";
-export async function GET(){try{ const db=publicBackend(),id=restaurantId(); const responses=await Promise.all([db.from("restaurants").select("id,name,pickup_address,is_demo").eq("id",id).single(),db.from("restaurant_settings").select("delivery_fee_cents,delivery_radius_m,is_accepting_orders,opening_hours").eq("restaurant_id",id).single(),db.from("categories").select("id,name").eq("restaurant_id",id).order("sort_order"),db.from("products").select("id,name,description,price_cents,category_id,image_path").eq("restaurant_id",id).order("name"),db.from("product_options").select("*").eq("restaurant_id",id),db.from("product_option_values").select("*").eq("restaurant_id",id)]);if(responses.some(r=>r.error))return Response.json({error:"No se pudo cargar el menú."},{status:503});const [r,s,c,p,o,v]=responses;const {data:point,error}=await db.rpc("restaurant_public_location",{p_restaurant:id});if(error)return Response.json({error:"La instalación necesita actualizar sus migraciones."},{status:503});return Response.json({restaurant:{...r.data,...point},settings:s.data,categories:c.data,products:p.data,options:o.data,values:v.data},{headers:noStore});}catch(e){return apiFailure(e);}}
+import {
+  apiFailure,
+  publicBackend,
+  restaurantId,
+  noStore,
+} from "@/lib/server/backend";
+export async function GET() {
+  try {
+    const db = publicBackend(),
+      id = restaurantId();
+    const responses = await Promise.all([
+      db
+        .from("restaurants")
+        .select("id,name,pickup_address,is_demo")
+        .eq("id", id)
+        .single(),
+      db
+        .from("restaurant_settings")
+        .select(
+          "delivery_fee_cents,delivery_radius_m,is_accepting_orders,opening_hours",
+        )
+        .eq("restaurant_id", id)
+        .single(),
+      db
+        .from("categories")
+        .select("id,name")
+        .eq("restaurant_id", id)
+        .order("sort_order"),
+      db
+        .from("products")
+        .select("id,name,description,price_cents,category_id,image_path")
+        .eq("restaurant_id", id)
+        .order("name"),
+      db.from("product_options").select("*").eq("restaurant_id", id),
+      db.from("product_option_values").select("*").eq("restaurant_id", id),
+    ]);
+    if (responses.some((r) => r.error))
+      return Response.json(
+        { error: "No se pudo cargar el menú." },
+        { status: 503 },
+      );
+    const [r, s, c, p, o, v] = responses;
+    const { data: point, error } = await db.rpc("restaurant_public_location", {
+      p_restaurant: id,
+    });
+    if (error)
+      return Response.json(
+        { error: "La instalación necesita actualizar sus migraciones." },
+        { status: 503 },
+      );
+    return Response.json(
+      {
+        restaurant: { ...r.data, ...point },
+        settings: s.data,
+        categories: c.data,
+        products: p.data,
+        options: o.data,
+        values: v.data,
+      },
+      { headers: noStore },
+    );
+  } catch (e) {
+    return apiFailure(e);
+  }
+}

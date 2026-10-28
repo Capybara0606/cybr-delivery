@@ -1,6 +1,34 @@
 import "server-only";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ApiError, publicBackend, restaurantId } from "./backend";
-export async function team(allowed:readonly string[]){publicBackend();const db=await createSupabaseServerClient();const {data:{user},error}=await db.auth.getUser();if(error||!user)throw new ApiError(401,"Inicia sesión para continuar.");const {data:member}=await db.from("restaurant_members").select("role").eq("restaurant_id",restaurantId()).eq("user_id",user.id).single();if(!member||!allowed.includes(member.role))throw new ApiError(403,"Tu cuenta no tiene permiso para este espacio.");return {db,user,role:member.role as string};}
-export function dbFailure(error:{message?:string;code?:string}|null){if(error)throw new ApiError(error.code==="42501"?403:400,error.message?.includes("Driver unavailable")?"El repartidor no está disponible.":error.message?.includes("Order is not ready")?"El pedido ya no está listo para asignar. Actualiza la lista.":"No se pudo guardar el cambio. Verifica el estado actual y tus permisos.");}
-export const orderColumns="id,restaurant_id,address_id,order_number,customer_name,customer_phone,status,subtotal_cents,delivery_fee_cents,total_cents,created_at,updated_at";
+export async function team(allowed: readonly string[]) {
+  publicBackend();
+  const db = await createSupabaseServerClient();
+  const {
+    data: { user },
+    error,
+  } = await db.auth.getUser();
+  if (error || !user) throw new ApiError(401, "Inicia sesión para continuar.");
+  const { data: member } = await db
+    .from("restaurant_members")
+    .select("role")
+    .eq("restaurant_id", restaurantId())
+    .eq("user_id", user.id)
+    .single();
+  if (!member || !allowed.includes(member.role))
+    throw new ApiError(403, "Tu cuenta no tiene permiso para este espacio.");
+  return { db, user, role: member.role as string };
+}
+export function dbFailure(error: { message?: string; code?: string } | null) {
+  if (error)
+    throw new ApiError(
+      error.code === "42501" ? 403 : 400,
+      error.message?.includes("Driver unavailable")
+        ? "El repartidor no está disponible."
+        : error.message?.includes("Order is not ready")
+          ? "El pedido ya no está listo para asignar. Actualiza la lista."
+          : "No se pudo guardar el cambio. Verifica el estado actual y tus permisos.",
+    );
+}
+export const orderColumns =
+  "id,restaurant_id,address_id,order_number,customer_name,customer_phone,status,subtotal_cents,delivery_fee_cents,total_cents,created_at,updated_at";

@@ -1,4 +1,37 @@
 "use client";
-import { useEffect,useState } from "react";
-type InstallPrompt=Event&{prompt:()=>Promise<void>;userChoice:Promise<{outcome:string}>};
-export function Pwa(){const [prompt,setPrompt]=useState<InstallPrompt|null>(null);useEffect(()=>{if('serviceWorker' in navigator&&window.isSecureContext)void navigator.serviceWorker.register('/sw.js').catch(()=>{});const install=(e:Event)=>{e.preventDefault();setPrompt(e as InstallPrompt);};const done=()=>setPrompt(null);window.addEventListener('beforeinstallprompt',install);window.addEventListener('appinstalled',done);return()=>{window.removeEventListener('beforeinstallprompt',install);window.removeEventListener('appinstalled',done);};},[]);if(!prompt)return null;return <button className="install-app" onClick={async()=>{await prompt.prompt();await prompt.userChoice;setPrompt(null);}}>Instalar app ↗</button>;}
+import { useEffect, useState } from "react";
+type InstallPrompt = Event & {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: string }>;
+};
+export function Pwa() {
+  const [prompt, setPrompt] = useState<InstallPrompt | null>(null);
+  useEffect(() => {
+    if ("serviceWorker" in navigator && window.isSecureContext)
+      void navigator.serviceWorker.register("/sw.js").catch(() => {});
+    const install = (e: Event) => {
+      e.preventDefault();
+      setPrompt(e as InstallPrompt);
+    };
+    const done = () => setPrompt(null);
+    window.addEventListener("beforeinstallprompt", install);
+    window.addEventListener("appinstalled", done);
+    return () => {
+      window.removeEventListener("beforeinstallprompt", install);
+      window.removeEventListener("appinstalled", done);
+    };
+  }, []);
+  if (!prompt) return null;
+  return (
+    <button
+      className="install-app"
+      onClick={async () => {
+        await prompt.prompt();
+        await prompt.userChoice;
+        setPrompt(null);
+      }}
+    >
+      Instalar app ↗
+    </button>
+  );
+}
