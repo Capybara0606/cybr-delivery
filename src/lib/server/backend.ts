@@ -2,6 +2,7 @@ import "server-only";
 import { createClient } from "@supabase/supabase-js";
 import { createHash, createHmac } from "node:crypto";
 import { parseSupabaseConfig } from "@/lib/env/public";
+import { allowedRequestOrigin } from "./request-origin";
 export const restaurantId = () =>
   process.env.RESTAURANT_ID || "a0000000-0000-4000-8000-000000000001";
 export function publicBackend() {
@@ -51,11 +52,7 @@ export class ApiError extends Error {
   }
 }
 export function sameOrigin(request: Request) {
-  const origin = request.headers.get("origin");
-  if (
-    (origin && origin !== new URL(request.url).origin) ||
-    request.headers.get("sec-fetch-site") === "cross-site"
-  )
+  if (!allowedRequestOrigin(request, process.env.APP_ORIGIN || "https://cybr-delivery.netlify.app"))
     throw new ApiError(403, "Origen de solicitud no permitido.");
 }
 export async function readJson(request: Request) {

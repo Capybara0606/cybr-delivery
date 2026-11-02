@@ -44,3 +44,6 @@ La RPC elimina posiciones sin actualizar de más de 24 h y contadores de más de
 ## 4. Aceptación antes de piloto
 Ejecutar TESTING.md, revisar Auth cerrado y membresías, cron y cuota. Confirmar anonimato: catálogo público, pedidos privados inaccesibles sin autorización. Supabase advisors advierte SECURITY DEFINER de funciones deliberadamente expuestas: revisar controles internos documentados, no deshabilitar RLS.
 Probar en Android/iPhone real: permiso denegado, red perdida, navegación y bloqueo. Una PWA no garantiza GPS en segundo plano. No usar pedidos/direcciones reales en demo ni presentar Café Aurora como comercio abierto. Plan Free no incluye garantías de disponibilidad ni reemplaza copias de seguridad antes de operación real.
+
+## Origen público y proxy
+APP_ORIGIN debe contener el origen HTTPS exacto al personalizar el dominio/restaurante. Predeterminado demo: https://cybr-delivery.netlify.app. El validador permite ese origen explícito aunque Netlify reconstruya Request.url con host interno. No se deriva el origen permitido de headers enviados por el cliente.

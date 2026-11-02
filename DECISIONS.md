@@ -30,3 +30,6 @@ La conexión Supabase no concede acceso a Netlify ni expone claves privadas de s
 
 ## D-018 — Bypass geográfico explícito para pruebas
 Se habilita sin límite de distancia para Café Aurora demo por petición del usuario; flag persistente y solo efectivo en demos. No elevar artificialmente el radio ni alterar instalaciones reales. Desactivar con demo_unrestricted_coverage=false.
+
+## D-019 — Origen canónico explícito detrás del proxy
+La URL interna de Netlify no coincide necesariamente con Origin público. Añadir APP_ORIGIN exacto, predeterminado del despliegue demo, sin comodines ni confianza en x-forwarded-host. Preservar bloqueo sec-fetch-site cross-site y comparación exacta.

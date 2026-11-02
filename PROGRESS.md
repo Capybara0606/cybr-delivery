@@ -51,3 +51,6 @@ Despliegue bloqueado por ORDER_TOKEN_SECRET y CRON_SECRET. El preflight ahora di
 
 ## Pruebas sin radio de entrega
 Usuario pidió quitar límite de distancia para probar. Migración demo_unrestricted_coverage añade flag privado a ajustes: efectivo solo si restaurants.is_demo=true, sin permiso UPDATE para authenticated. Cobertura y checkout aplican el mismo bypass. Activado en Café Aurora cloud; ubicación Madrid aceptada, y al marcar restaurante no-demo dentro de transacción revertida se vuelve a rechazar. Check, 41 pruebas DB/unitarias y build superados. Horarios/recepción de pedidos permanecen configurables. UI identifica modo de pruebas sin distancia.
+
+## Corrección origen Netlify
+POST /api/orders con Origin público reproducía 403 por URL interna del adaptador. Se añade APP_ORIGIN exacto (predeterminado demo cybr-delivery.netlify.app) junto con origen directo de Request. No se confía en forwarded-host; cross-site permanece bloqueado. Siete pruebas de regresión cubren proxy, local, origen ajeno, sufijos falsos, forwarded spoof, configuración inválida y clientes sin Origin.
