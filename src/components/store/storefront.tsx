@@ -255,8 +255,9 @@ export function Storefront() {
             <div className="shop-facts">
               <span>
                 <MapPin size={13} />{" "}
-                {catalog ? catalog.settings.delivery_radius_m / 1000 : 3} KM DE
-                COBERTURA
+                {catalog?.restaurant.is_demo && catalog.settings.demo_unrestricted_coverage
+                  ? "PRUEBAS SIN LÍMITE DE DISTANCIA"
+                  : `${catalog ? catalog.settings.delivery_radius_m / 1000 : 3} KM DE COBERTURA`}
               </span>
               <span>
                 ENVÍO{" "}

@@ -17,7 +17,7 @@ export async function GET() {
       db
         .from("restaurant_settings")
         .select(
-          "delivery_fee_cents,delivery_radius_m,is_accepting_orders,opening_hours",
+          "delivery_fee_cents,delivery_radius_m,is_accepting_orders,opening_hours,demo_unrestricted_coverage",
         )
         .eq("restaurant_id", id)
         .single(),

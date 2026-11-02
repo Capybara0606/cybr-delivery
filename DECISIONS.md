@@ -27,3 +27,6 @@
 ## D-017 — Validación sin infraestructura pagada
 Usuario autoriza cloud solo a $0. Proyecto Supabase Free dedicado, organización CYBR, cotización confirmada por herramienta. Web prevista en Netlify Free: uso comercial permitido, límite duro de créditos y pausa al agotarse; usar subdominio netlify.app sin dominio comprado. No adoptar Vercel Hobby para este producto por su restricción personal/no comercial. No contratar complementos, recargas ni upgrades. El plan gratuito limita disponibilidad: Supabase puede pausar tras una semana inactivo, Netlify al agotarse cuota.
 La conexión Supabase no concede acceso a Netlify ni expone claves privadas de servidor; faltan esos accesos/configuración para publicar. No convertir el motor a otra arquitectura solo para eludir la configuración de cuentas.
+
+## D-018 — Bypass geográfico explícito para pruebas
+Se habilita sin límite de distancia para Café Aurora demo por petición del usuario; flag persistente y solo efectivo en demos. No elevar artificialmente el radio ni alterar instalaciones reales. Desactivar con demo_unrestricted_coverage=false.

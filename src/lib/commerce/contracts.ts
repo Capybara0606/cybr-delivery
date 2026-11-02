@@ -54,6 +54,7 @@ export type Catalog = {
   settings: {
     delivery_fee_cents: number;
     delivery_radius_m: number;
+    demo_unrestricted_coverage?: boolean;
     is_accepting_orders: boolean;
     opening_hours: Record<string, string[][]>;
   };

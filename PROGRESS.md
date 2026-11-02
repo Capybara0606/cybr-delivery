@@ -48,3 +48,6 @@ Verificación final: ambos jobs de CI superados en cc7c68c. Se añadió prueba d
 
 ## Diagnóstico de variables en Netlify
 Despliegue bloqueado por ORDER_TOKEN_SECRET y CRON_SECRET. El preflight ahora distingue variable ausente, vacía, demasiado corta o formato inválido sin imprimir valores. Verificados cuatro casos con entorno sintético; check y build superados. No se rebaja el mínimo de 32 caracteres ni se generan secretos en logs. Publicación sigue pendiente.
+
+## Pruebas sin radio de entrega
+Usuario pidió quitar límite de distancia para probar. Migración demo_unrestricted_coverage añade flag privado a ajustes: efectivo solo si restaurants.is_demo=true, sin permiso UPDATE para authenticated. Cobertura y checkout aplican el mismo bypass. Activado en Café Aurora cloud; ubicación Madrid aceptada, y al marcar restaurante no-demo dentro de transacción revertida se vuelve a rechazar. Check, 41 pruebas DB/unitarias y build superados. Horarios/recepción de pedidos permanecen configurables. UI identifica modo de pruebas sin distancia.

@@ -44,3 +44,5 @@ PWA /manifest.webmanifest + /sw.js: fallback offline genérico, sin caché de da
 
 ## Alojamiento MVP gratuito
 Backend demo Supabase Free dedicado (`wpoutxcjrctxijbzdtyy`). Web Next.js prevista en Netlify Free mediante adaptador OpenNext automático; `netlify.toml` valida variables antes del build. Rate limit confía exclusivamente en x-nf-client-connection-ip cuando TRUST_PROXY=netlify. Scheduled Function cleanup-delivery llama RPC de retención con credencial privada, diariamente UTC; no acepta peticiones públicas según contrato del proveedor. Publicación pendiente de acceso a hosting y secretos, no verificada remotamente.
+
+Cobertura demo: restaurant_settings.demo_unrestricted_coverage, false por defecto y configurable solo por servicio. Ambas RPC de cobertura/checkout ignoran distancia exclusivamente cuando restaurants.is_demo también es true. Se conserva radio para volver a operación normal.
