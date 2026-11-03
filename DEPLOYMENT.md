@@ -2,7 +2,7 @@
 
 ## Estado comprobado
 Supabase `cybr-delivery-mvp` creado en organización CYBR (Free), región us-east-1, referencia `wpoutxcjrctxijbzdtyy`. Cotización de creación: $0/mes. API: https://wpoutxcjrctxijbzdtyy.supabase.co. Nueve migraciones y seed aplicados: 18 tablas con RLS, 12 productos, 4 categorías; recepción de pedidos cerrada. Catálogo REST verificado; pedidos privados bloqueados al anónimo.
-**La web aún no está publicada.** Falta acceso a cuenta Netlify Free y configuración segura. La conexión Supabase no entrega la clave secreta de servidor ni permite configurar Auth desde las herramientas disponibles.
+**Demo publicada en https://cybr-delivery.netlify.app.** Usuario configuró variables en Netlify, desactivó protección de visitantes y cerró registro público Supabase. Accesos owner/driver confirmados. La conexión Supabase no expone secretos de servidor ni permite editar Auth: futuros cambios se hacen desde panel seguro.
 
 ## Costos y límites revisados
 - [Supabase Free](https://supabase.com/pricing): $0/mes, 500 MB de DB, 1 GB de Storage y 5 GB de salida; puede pausar proyectos tras una semana inactivos. Dos proyectos Free activos como máximo. No activar Pro ni add-ons.
@@ -35,7 +35,7 @@ Configurar variables ANTES del primer build en Environment variables, disponible
 
 Marcar secretos en el gestor del proveedor, sin pegarlos en chat ni Git. Generar secretos con gestor seguro o `openssl rand -hex 32` en máquina propia. ORDER_TOKEN_SECRET debe conservarse: deriva tokens/códigos para reintentos de pedidos activos. No publicar con variables vacías: el preflight bloquea ese build.
 TRUST_PROXY=netlify usa únicamente el header de conexión del proveedor. No confiar en X-Forwarded-For arbitrario.
-Primera publicación: verificar URL HTTPS, menú, login y flujo autorizado completo. Solo entonces comunicar URL como funcional. No existe despliegue Netlify verificado todavía.
+Primera publicación: verificar URL HTTPS, menú, login y flujo autorizado completo. Solo entonces comunicar URL como funcional. La demo Netlify ya responde: catálogo/health y origen canónico verificados; usuario confirmó acceso de ambos roles.
 
 ## 3. Retención y cron
 `netlify/functions/cleanup-delivery.mjs` ejecuta cleanup_delivery_data diariamente a 00:00 UTC con clave secreta de servidor. La función programada no admite invocación HTTP pública en Netlify. Verificar primera ejecución/logs en producción; los cron no se ejecutan periódicamente en local ni previews. Consumen cuota Free: si el sitio se pausa también se interrumpe mantenimiento.

@@ -29,7 +29,7 @@ En este entorno Supabase completo excedió el disco; se verificó con stack real
 `npm run build` — producción. `npm run deploy:check` — preflight sin publicar ni mostrar valores.
 
 ## Estado de publicación
-Código publicado en https://github.com/Capybara0606/cybr-delivery. Supabase Free creado y migrado: `wpoutxcjrctxijbzdtyy` (CYBR). Sitio todavía sin publicar: falta acceso/configuración de Netlify Free. Ver DEPLOYMENT.md para límites gratuitos y pasos pendientes.
+Código publicado en https://github.com/Capybara0606/cybr-delivery. Demo publicada: https://cybr-delivery.netlify.app. Supabase Free dedicado: `wpoutxcjrctxijbzdtyy` (CYBR). Registro público cerrado y cuentas owner/driver provisionadas; usuario confirmó ambos accesos. Ver DEPLOYMENT.md para configuración y límites gratuitos.
 GPS validado con emulación del navegador, no certificado en teléfono físico. Una PWA no garantiza seguimiento con otra app abierta o teléfono bloqueado.
 
 ## Documentación

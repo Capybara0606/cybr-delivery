@@ -23,3 +23,7 @@ Descargar APK al completar el workflow. Android puede pedir permitir instalació
 5. Forzar cierre/reiniciar: no garantizar continuidad ni reinicio silencioso; volver a abrir y activar seguimiento autorizado.
 
 Tipos, export Android y manifest prebuild verificados; APK y resultados físicos se documentan en PROGRESS.md. Background configurado no equivale a sensor físico certificado.
+
+## Descarga piloto disponible
+[Descargar APK Android ARM64](https://github.com/Capybara0606/cybr-delivery/releases/download/driver-v0.1.0-pilot/CYBR-Repartidor-0.1.0-arm64.apk) · 22 MB.
+[Prerrelease y fuente exacta](https://github.com/Capybara0606/cybr-delivery/releases/tag/driver-v0.1.0-pilot). Compilación y firma v2 verificadas, prueba física pendiente. No requiere cuenta Expo, PC ni servicios pagados para instalar.

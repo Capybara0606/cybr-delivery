@@ -31,10 +31,10 @@ Modelo inicial: un despliegue de aplicación y un proyecto Supabase independient
 PWA para prueba con pantalla abierta, sin promesas en segundo plano. Abrir navegación externa puede suspender GPS. Autorización privada también en Realtime; nunca canal público con coordenadas. Publicar aproximadamente cada 5 s solo si hay nueva posición válida; guardar precisión, hora del dispositivo y recepción servidor. Rechazar posiciones fuera de rango, antiguas o no autorizadas. Mostrar última actualización y conexión; detener al finalizar. Si el piloto exige navegación externa y pantalla bloqueada con seguimiento, evolucionar interfaz driver a app móvil antes de operación.
 
 ## Límites
-Vercel se usará para HTTP; no mantener WebSockets propios ni workers persistentes allí. Supabase gestiona suscripciones. Seleccionar proveedor de teselas/geocodificación con condiciones de uso compatibles; MapLibre es renderizador y no incluye ese servicio.
+Netlify se usa para HTTP; no mantener WebSockets propios ni workers persistentes allí. Supabase gestiona suscripciones. Seleccionar proveedor de teselas/geocodificación con condiciones de uso compatibles; MapLibre es renderizador y no incluye ese servicio.
 
 ## Fundación de datos implementada (Fase 2)
-Ver DATABASE.md y SUPABASE.md. Ocho migraciones y un seed versionados; permisos explícitos, trigger perfil Auth, roles owner/staff/driver y funciones transaccionales. Clientes SSR con cookies/getUser para APIs privadas. Checkout invitado y Realtime operativo verificados en CI.
+Ver DATABASE.md y SUPABASE.md. Diez migraciones y un seed versionados; permisos explícitos, trigger perfil Auth, roles owner/staff/driver y funciones transaccionales. Clientes SSR con cookies/getUser para APIs privadas. Checkout invitado y Realtime operativo verificados en CI.
 
 ## Aplicación funcional (fases 3–8)
 / tienda cliente -> /api/catalog y /api/orders. /track extrae token del fragmento y consulta /api/tracking con POST. /admin y /driver autentican empleados mediante /api/session y operan sus APIs de rol con cookies SSR/getUser.
@@ -43,7 +43,7 @@ Supabase maneja persistencia, reglas transaccionales, RLS, Auth, Storage y event
 PWA /manifest.webmanifest + /sw.js: fallback offline genérico, sin caché de datos privados. Sitio preparado para Vercel; no se registró Site ni se adaptó a otro runtime al elegir el usuario dejar despliegue pendiente.
 
 ## Alojamiento MVP gratuito
-Backend demo Supabase Free dedicado (`wpoutxcjrctxijbzdtyy`). Web Next.js prevista en Netlify Free mediante adaptador OpenNext automático; `netlify.toml` valida variables antes del build. Rate limit confía exclusivamente en x-nf-client-connection-ip cuando TRUST_PROXY=netlify. Scheduled Function cleanup-delivery llama RPC de retención con credencial privada, diariamente UTC; no acepta peticiones públicas según contrato del proveedor. Publicación pendiente de acceso a hosting y secretos, no verificada remotamente.
+Backend demo Supabase Free dedicado (`wpoutxcjrctxijbzdtyy`). Web Next.js publicada en Netlify Free mediante adaptador OpenNext automático; `netlify.toml` valida variables antes del build. Rate limit confía exclusivamente en x-nf-client-connection-ip cuando TRUST_PROXY=netlify. Scheduled Function cleanup-delivery llama RPC de retención con credencial privada, diariamente UTC; no acepta peticiones públicas según contrato del proveedor. Publicación remota y acceso a ambos roles confirmados; primera ejecución de cron pendiente de verificar.
 
 Cobertura demo: restaurant_settings.demo_unrestricted_coverage, false por defecto y configurable solo por servicio. Ambas RPC de cobertura/checkout ignoran distancia exclusivamente cuando restaurants.is_demo también es true. Se conserva radio para volver a operación normal.
 

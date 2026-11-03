@@ -1,19 +1,19 @@
 # CYBR DELIVERY — progreso
 ## Estado actual
 MVP web implementado y probado con Supabase real en entornos temporales. Mismo motor para plataformas independientes: un despliegue/base por restaurante y diseño personalizable, sin marketplace.
-Código en main: https://github.com/Capybara0606/cybr-delivery. El usuario autorizó continuar con despliegue **exclusivamente gratuito**. Supabase Free creado en CYBR; alojamiento Netlify Free preparado, pendiente de cuenta/acceso y secretos. No se ha publicado una URL web.
+Código en main: https://github.com/Capybara0606/cybr-delivery. El usuario autorizó continuar con despliegue **exclusivamente gratuito**. Supabase Free creado en CYBR; Netlify Free publicado en https://cybr-delivery.netlify.app. Secretos configurados por usuario, registro público cerrado y cuentas owner/driver verificadas.
 
 ## Fases y aceptación
 | Fase | Resultado |
 |---|---|
 | 1. Investigación/arquitectura/configuración | Completada. Repo nuevo y tokens CYBR; configuración y tema separados. |
-| 2. Supabase/seguridad/seed | Completada. 9 migraciones acumuladas, 18 tablas públicas con RLS, PostGIS, roles y seed Café Aurora. |
+| 2. Supabase/seguridad/seed | Completada. 10 migraciones acumuladas, 18 tablas públicas con RLS, PostGIS, roles y seed Café Aurora. |
 | 3. Cliente/checkout | Completada. Menú real/opciones, carrito, ubicación, confirmación explícita del pin, checkout invitado transaccional, idempotencia, precios/horario/cobertura servidor y tracking privado. |
 | 4. Administración/Realtime | Completada. Login, Kanban, detalle/historial, CRUD catálogo/categorías/fotos, configuración, flota y ventas reales. Eventos sin PII con RLS y respaldo de actualización. |
 | 5. Repartidor | Completada. Turno, aceptación/rechazo, recogida/salida/llegada, navegación, código con cinco intentos, cobro/entrega y liberación atómicos. |
 | 6. GPS/mapas | Implementada y probada con navegador emulado. Autorización, edad/precisión, monotonía, stale, simulación explícita y corte al terminar. **Prueba en teléfono físico pendiente.** |
 | 7. Pruebas | Completadas las automatizadas. 41 unitarias/DB y flujo Playwright sobre build de producción/Supabase real con tres sesiones. No sustituyen la prueba de campo. |
-| 8. PWA/documentación/despliegue | PWA e instalación listas; manifiestos separados de tienda/repartidor, offline genérico sin datos privados, preflight/cron/Vercel e instrucciones Supabase. **Supabase cloud creado; publicación web pendiente de acceso a hosting.** |
+| 8. PWA/documentación/despliegue | PWA e instalación listas; manifiestos separados de tienda/repartidor, offline genérico sin datos privados, preflight/cron/Vercel e instrucciones Supabase. **Web y Supabase publicados; GPS físico pendiente.** |
 
 ## Evidencia
 - `npm run check`: tipos de rutas, TypeScript y ESLint correctos, sin advertencias propias.
@@ -30,7 +30,7 @@ Código en main: https://github.com/Capybara0606/cybr-delivery. El usuario autor
 GitHub no permitía crear repo; usuario lo creó público y se conservó visibilidad. Supabase completo excedía el disco local; verificación trasladada a runner aislado GitHub. Auth email se habilitó manteniendo signup global cerrado. Prueba E2E encontró y corrigió borrado de código al marcar llegada y resolución incorrecta del worker MapLibre. Manifiesto driver usa ruta explícita para que Next lo exponga correctamente.
 
 ## Pendientes concretos
-1. Configurar Netlify Free, secretos de servidor y Auth cloud (registro cerrado + URL exacta); seguir DEPLOYMENT.md. Supabase dedicado creado; no se usaron bases NanBites/CYBR VIEW ni se creó una Site.
+1. Probar APK nativo en teléfono físico y verificar ciclo completo contra la demo publicada. No se usaron bases NanBites/CYBR VIEW ni se creó una Site.
 2. Ensayo físico Android/iPhone con permisos, batería, GPS y cambio de app/bloqueo. Una PWA no garantiza GPS en segundo plano; si se necesita, evolucionar driver a app móvil.
 3. Operación real: sustituir datos/fotos demo, revisar proveedor de mapas/consumo, confirmar cron/retención y backups. No presentar Café Aurora como negocio real ni dar por certificada producción solo por pasar CI.
 
@@ -61,3 +61,10 @@ Verificado: tipos nativos, Expo export Android y manifest prebuild; web check, 1
 Cloud actualizado: Netlify publicado; usuario confirmó login owner y driver, roles provisionados. Signup cerrado/email habilitado verificados. Origen checkout corregido y comprobado remotamente.
 
 CI nativa en runner limpio pasó en c2a5486 y 4ca44d1. Primer APK falló por paquete Android SDK tools retirado; workflow corregido a platform-tools. Segundo intento 41561769339 en compilación Gradle. Tests de dominio separados de tsconfig Expo para correr en job web sin dependencias móviles instaladas. Netlify build.ignore evita gastar créditos web en cambios solo nativos.
+
+Validación completa CI en 4ca44d1: https://github.com/Capybara0606/cybr-delivery/actions/runs/41561944046 — verify, driver-native y supabase-integration correctos. Expo Doctor 20/20 tras configurar proxy del entorno. APK en compilación; no ensayo físico todavía.
+
+## APK piloto publicado
+Build Android 41561769339 superado, fuente exacta 3e89b95891cfde12310224e638366abe24cbecda. APK ARM64 de 21.99 MB con classes.dex, bundle Hermes embebido y configuración pública demo comprobados. Firma v2 verificada mediante biblioteca oficial Android apksig. SHA256 1f654e3f018283ae55ed5ffe7bb0b17a2f6ce193073e31eadf87299180cf0877.
+Prerrelease público: https://github.com/Capybara0606/cybr-delivery/releases/tag/driver-v0.1.0-pilot — APK descargable sin cuenta Expo ni PC. Publicación por workflow 41562893489 correcta; subida directa desde workspace falló por credencial limitada al host uploads y se resolvió con token del runner. No se compartieron secretos ni se contrató infraestructura.
+Código posterior 4ca44d1 solo reorganiza tests/dominio sin cambios funcionales del APK. CI completa 41561944046 superada. Firma de desarrollo, no publicación Play Store. Pendiente instalar y probar GPS físico/segundo plano con usuario. Notificaciones push y mapa embebido no implementados.
