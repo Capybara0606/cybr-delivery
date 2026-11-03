@@ -29,6 +29,6 @@ Tipos, export Android y manifest prebuild verificados; APK y resultados físicos
 [Prerrelease y fuente exacta](https://github.com/Capybara0606/cybr-delivery/releases/tag/driver-v0.2.0-pilot). Compilación y firma v2 verificadas, prueba física pendiente. No requiere cuenta Expo, PC ni servicios pagados para instalar.
 
 ## Versión 0.2
-Corrige pedido assigned sin botón de recogida y completa flujo hasta Finalizar entrega. Ubicación automática por turno con aviso y permisos; no necesita pulsar compartir en cada pedido. Plan de consulta del admin en ../../ADMIN_LOCATION_PLAN.md; el nuevo panel no está habilitado todavía.
+Corrige pedido assigned sin botón de recogida y completa flujo hasta Finalizar entrega. Ubicación automática por turno con aviso y permisos; no necesita pulsar compartir en cada pedido. Panel administrativo disponible en Administración -> Flota -> Ubicación durante el turno; detalles en ../../ADMIN_LOCATION_PLAN.md.
 
 APK 0.2.0 compilado y publicado; firma v2 igual a 0.1 comprobada. Instalar como actualización, sin desinstalar. Primera apertura de un turno ya activo sin permisos: usar Reintentar GPS y conceder ubicación precisa/siempre. Después se comparte automáticamente entre pedidos. Prueba física de esta nueva política pendiente de usuario.

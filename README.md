@@ -37,3 +37,5 @@ PROGRESS.md, ARCHITECTURE.md, DECISIONS.md, DATABASE.md, SECURITY.md, TESTING.md
 
 ## App nativa del repartidor
 [apps/driver](apps/driver/README.md): backend/cuentas existentes, entregas y GPS nativo con permisos. APK piloto Android mediante workflow manual sin EAS/tiendas pagadas; prueba física pendiente.
+
+Administración -> Flota muestra mapa y lista del GPS de todo el turno (también sin pedido), con precisión, última recepción y estados de señal. Se actualiza cada 10 s al estar visible; el repartidor necesita app 0.2, turno activo y permisos.

@@ -34,7 +34,7 @@ PWA para prueba con pantalla abierta, sin promesas en segundo plano. Abrir naveg
 Netlify se usa para HTTP; no mantener WebSockets propios ni workers persistentes allí. Supabase gestiona suscripciones. Seleccionar proveedor de teselas/geocodificación con condiciones de uso compatibles; MapLibre es renderizador y no incluye ese servicio.
 
 ## Fundación de datos implementada (Fase 2)
-Ver DATABASE.md y SUPABASE.md. Diez migraciones y un seed versionados; permisos explícitos, trigger perfil Auth, roles owner/staff/driver y funciones transaccionales. Clientes SSR con cookies/getUser para APIs privadas. Checkout invitado y Realtime operativo verificados en CI.
+Ver DATABASE.md y SUPABASE.md. Doce migraciones y un seed versionados; permisos explícitos, trigger perfil Auth, roles owner/staff/driver y funciones transaccionales. Clientes SSR con cookies/getUser para APIs privadas. Checkout invitado y Realtime operativo verificados en CI.
 
 ## Aplicación funcional (fases 3–8)
 / tienda cliente -> /api/catalog y /api/orders. /track extrae token del fragmento y consulta /api/tracking con POST. /admin y /driver autentican empleados mediante /api/session y operan sus APIs de rol con cookies SSR/getUser.
@@ -53,7 +53,7 @@ apps/driver: Expo/React Native independiente de Next. Supabase publishable + Sec
 Compatibilidad web: src/lib/browser/compat.ts proporciona UUID seguro sin randomUUID y almacenamiento tolerante a restricciones. Sin almacenamiento el carrito y la clave de idempotencia siguen en memoria mientras la página permanezca abierta; se pierde persistencia al recargar/cerrar. Target de compilación Safari/iOS 15, soporte físico antiguo pendiente; no se rebaja seguridad del servidor.
 
 ## GPS por turno (sustituye límite nativo por entrega)
-Turno=drivers.is_available. Android inicia/reanuda GPS automáticamente con permisos y servicio visible; al cerrar turno/sesión lo detiene. private.driver_shift_locations almacena solo última posición propia mediante publish_shift_location; no grants de lectura ni Realtime. Tracking invitado conserva tabla de asignación y solo en camino. Cerrar turno borra ambas posiciones; driver row lock sincroniza publicación/cierre. Completar/cancelar entrega borra solo ubicación de asignación, no la del turno aún activo. ADMIN_LOCATION_PLAN.md define la futura lectura owner/staff, aún no habilitada.
+Turno=drivers.is_available. Android inicia/reanuda GPS automáticamente con permisos y servicio visible; al cerrar turno/sesión lo detiene. private.driver_shift_locations almacena solo última posición propia mediante publish_shift_location; no grants de lectura ni Realtime. Tracking invitado conserva tabla de asignación y solo en camino. Cerrar turno borra ambas posiciones; driver row lock sincroniza publicación/cierre. Completar/cancelar entrega borra solo ubicación de asignación, no la del turno aún activo. ADMIN_LOCATION_PLAN.md describe la lectura owner/staff implementada mediante RPC/API restringidas.
 
 ## Lectura de GPS de turno por administración
 private.driver_shift_locations -> RPC staff_shift_locations con owner/staff verificado -> GET /api/admin/fleet-locations con sesión de usuario -> LiveFleet/FleetMap en pestaña Flota. Sin grants SELECT privados ni Realtime, caché no-store y polling 10 s solo visible. Solo drivers con turno/membresía actual; coordenadas >90 s se omiten en SQL y navegador, retrasos >30 s señalados. Lista alternativa si MapLibre no carga, nunca coordenadas estimadas.
