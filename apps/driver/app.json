@@ -1,0 +1,31 @@
+{
+  "expo": {
+    "name": "CYBR Repartidor",
+    "slug": "cybr-delivery-driver",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "android": {
+      "package": "com.cybr.delivery.driver",
+      "versionCode": 1
+    },
+    "ios": {
+      "bundleIdentifier": "com.cybr.delivery.driver",
+      "supportsTablet": false
+    },
+    "plugins": [
+      "expo-secure-store",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Tu ubicaci\u00f3n se comparte con el cliente y el restaurante durante una entrega activa.",
+          "locationAlwaysAndWhenInUsePermission": "Permite seguir tu entrega al abrir navegaci\u00f3n o bloquear el tel\u00e9fono. Puedes detener el GPS desde la app.",
+          "isAndroidBackgroundLocationEnabled": true,
+          "isAndroidForegroundServiceEnabled": true,
+          "isIosBackgroundLocationEnabled": true
+        }
+      ]
+    ]
+  }
+}

@@ -33,3 +33,6 @@ Se habilita sin límite de distancia para Café Aurora demo por petición del us
 
 ## D-019 — Origen canónico explícito detrás del proxy
 La URL interna de Netlify no coincide necesariamente con Origin público. Añadir APP_ORIGIN exacto, predeterminado del despliegue demo, sin comodines ni confianza en x-forwarded-host. Preservar bloqueo sec-fetch-site cross-site y comparación exacta.
+
+## D-020 — App nativa y Android piloto gratuito
+Usuario pide comenzar app repartidor. Expo/React Native comparte base Android/iOS y backend existente. APK directo con runner estándar GitHub de repo público, sin EAS/tiendas pagadas. No prometer distribución iPhone gratuita ni GPS físico certificado. Sesión SecureStore accesible tras primer desbloqueo para background; ningún secreto privilegiado en APK.

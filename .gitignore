@@ -12,3 +12,12 @@ supabase/.temp/
 supabase/.branches/
 
 public/maplibre/
+
+apps/driver/.expo/
+apps/driver/android/
+apps/driver/ios/
+apps/driver/dist/
+*.apk
+*.aab
+*.jks
+*.keystore

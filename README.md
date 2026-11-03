@@ -34,3 +34,6 @@ GPS validado con emulación del navegador, no certificado en teléfono físico. 
 
 ## Documentación
 PROGRESS.md, ARCHITECTURE.md, DECISIONS.md, DATABASE.md, SECURITY.md, TESTING.md, DEPLOYMENT.md, SUPABASE.md y CUSTOMIZATION.md.
+
+## App nativa del repartidor
+[apps/driver](apps/driver/README.md): backend/cuentas existentes, entregas y GPS nativo con permisos. APK piloto Android mediante workflow manual sin EAS/tiendas pagadas; prueba física pendiente.

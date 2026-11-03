@@ -1,0 +1,39 @@
+name: Build Android driver APK
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    defaults:
+      run:
+        working-directory: apps/driver
+    env:
+      CI: '1'
+      EXPO_NO_TELEMETRY: '1'
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: apps/driver/package-lock.json
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: android-actions/setup-android@v3
+      - run: npm ci
+      - run: npm run check
+      - run: npx expo prebuild --platform android --no-install
+      - name: Build installable pilot APK with embedded JavaScript
+        run: ./gradlew assembleRelease --no-daemon --max-workers=2 -PreactNativeArchitectures=arm64-v8a
+        working-directory: apps/driver/android
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cybr-driver-android-pilot
+          path: apps/driver/android/app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
+          retention-days: 7

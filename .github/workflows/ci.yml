@@ -50,3 +50,20 @@ jobs:
       - name: Stop isolated local Supabase stack
         if: always()
         run: npx supabase stop --no-backup
+
+  driver-native:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: apps/driver
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: apps/driver/package-lock.json
+      - run: npm ci
+      - run: npm run check
+      - run: npx expo export --platform android

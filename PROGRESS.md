@@ -54,3 +54,8 @@ Usuario pidió quitar límite de distancia para probar. Migración demo_unrestri
 
 ## Corrección origen Netlify
 POST /api/orders con Origin público reproducía 403 por URL interna del adaptador. Se añade APP_ORIGIN exacto (predeterminado demo cybr-delivery.netlify.app) junto con origen directo de Request. No se confía en forwarded-host; cross-site permanece bloqueado. Siete pruebas de regresión cubren proxy, local, origen ajeno, sufijos falsos, forwarded spoof, configuración inválida y clientes sin Origin.
+
+## App nativa del repartidor iniciada
+Expo SDK 58/React Native 0.88 en apps/driver, configuración demo pública sin secretos. Reutiliza Auth/RLS/RPC; login, turno, asignaciones, entrega/cobro/código, navegación externa, historial y GPS TaskManager con permisos/notificación. Sesión SecureStore fragmentada. Sin cola offline. Android primero mientras se confirma plataforma; iOS no compilado.
+Verificado: tipos nativos, Expo export Android y manifest prebuild; web check, 17 unitarias y build. APK preparado con workflow manual gratuito de repo público; ejecución pendiente. GPS físico pendiente.
+Cloud actualizado: Netlify publicado; usuario confirmó login owner y driver, roles provisionados. Signup cerrado/email habilitado verificados. Origen checkout corregido y comprobado remotamente.
