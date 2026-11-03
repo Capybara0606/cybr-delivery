@@ -47,3 +47,5 @@ Probar en Android/iPhone real: permiso denegado, red perdida, navegación y bloq
 
 ## Origen público y proxy
 APP_ORIGIN debe contener el origen HTTPS exacto al personalizar el dominio/restaurante. Predeterminado demo: https://cybr-delivery.netlify.app. El validador permite ese origen explícito aunque Netlify reconstruya Request.url con host interno. No se deriva el origen permitido de headers enviados por el cliente.
+
+Los cambios exclusivos de apps/driver se omiten en builds automáticos Netlify mediante build.ignore; conservan el presupuesto gratuito de la web. Si no hay referencia de caché válida, git diff falla y se realiza build normal. Una modificación de netlify.toml o código/configuración web vuelve a construir.
