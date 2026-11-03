@@ -135,6 +135,31 @@ try {
     args: ["--no-sandbox", "--enable-unsafe-swiftshader"],
   });
   mkdirSync(artifacts, { recursive: true });
+  // Older Safari APIs/privacy restrictions must not block the real catalog.
+  const compatibilityContext = await browser.newContext({
+    viewport: { width: 768, height: 1024 },
+  });
+  await compatibilityContext.addInitScript(() => {
+    Object.defineProperty(Crypto.prototype, "randomUUID", {
+      value: undefined,
+      configurable: true,
+    });
+    for (const method of ["getItem", "setItem", "removeItem"])
+      Storage.prototype[method] = () => {
+        throw new DOMException("Storage blocked", "SecurityError");
+      };
+  });
+  const compatibilityPage = await compatibilityContext.newPage();
+  const compatibilityErrors = [];
+  compatibilityPage.on("pageerror", (e) => compatibilityErrors.push(e.message));
+  await compatibilityPage.goto(base);
+  await expect(compatibilityPage.locator(".product-card")).toHaveCount(12);
+  await compatibilityPage.getByRole("button", { name: /Capuchino/ }).click();
+  await compatibilityPage.getByRole("button", { name: /Agregar al pedido/ }).click();
+  await compatibilityPage.getByRole("button", { name: /Ver mi pedido/ }).click();
+  await expect(compatibilityPage.getByLabel("Tu nombre", { exact: true })).toBeVisible();
+  check(!compatibilityErrors.length, "Catalog/cart work without randomUUID and with blocked storage");
+  await compatibilityContext.close();
   const guestContext = await browser.newContext({
       viewport: { width: 390, height: 844 },
     }),

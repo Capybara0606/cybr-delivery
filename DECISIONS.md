@@ -36,3 +36,6 @@ La URL interna de Netlify no coincide necesariamente con Origin público. Añadi
 
 ## D-020 — App nativa y Android piloto gratuito
 Usuario pide comenzar app repartidor. Expo/React Native comparte base Android/iOS y backend existente. APK directo con runner estándar GitHub de repo público, sin EAS/tiendas pagadas. No prometer distribución iPhone gratuita ni GPS físico certificado. Sesión SecureStore accesible tras primer desbloqueo para background; ningún secreto privilegiado en APK.
+
+## D-021 — Compatibilidad progresiva del catálogo
+No exigir randomUUID ni persistencia local para navegar/comprar: fallback criptográfico getRandomValues y sesión en memoria. No usar Math.random para idempotencia. Solicitar target Safari 15 mediante Browserslist; Next/Tailwind mantienen baseline oficial moderno, por lo que verificar dispositivo físico antes de anunciar soporte completo.

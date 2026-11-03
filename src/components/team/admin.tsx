@@ -1,4 +1,5 @@
 "use client";
+import { browserUuid } from "@/lib/browser/compat";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
@@ -285,7 +286,7 @@ export function Admin() {
             : file.type === "image/png"
               ? "png"
               : "webp";
-      const path = `${data!.settings.restaurant_id}/${crypto.randomUUID()}.${extension}`;
+      const path = `${data!.settings.restaurant_id}/${browserUuid()}.${extension}`;
       const { error } = await db.storage
         .from("product-images")
         .upload(path, file, { contentType: file.type });

@@ -49,3 +49,5 @@ Cobertura demo: restaurant_settings.demo_unrestricted_coverage, false por defect
 
 ## Cliente nativo
 apps/driver: Expo/React Native independiente de Next. Supabase publishable + SecureStore, getUser y membership por restaurante. RPC autenticadas existentes. expo-location/TaskManager solo asignación activa; Android servicio visible e iOS background mode configurado. Sin WebView ni cola offline. APK piloto desde GitHub Actions estándar; prueba física pendiente.
+
+Compatibilidad web: src/lib/browser/compat.ts proporciona UUID seguro sin randomUUID y almacenamiento tolerante a restricciones. Sin almacenamiento el carrito y la clave de idempotencia siguen en memoria mientras la página permanezca abierta; se pierde persistencia al recargar/cerrar. Target de compilación Safari/iOS 15, soporte físico antiguo pendiente; no se rebaja seguridad del servidor.

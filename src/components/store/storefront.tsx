@@ -1,4 +1,5 @@
 "use client";
+import { browserUuid, browserStorage } from "@/lib/browser/compat";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -50,18 +51,18 @@ export function Storefront() {
         const d = await r.json();
         if (!r.ok) throw new Error(d.error);
         setIdempotency(
-          localStorage.getItem("cybr-checkout-key") || crypto.randomUUID(),
+          browserStorage.get("cybr-checkout-key") || browserUuid(),
         );
         setCatalog(d);
         setPoint({ lat: d.restaurant.lat, lng: d.restaurant.lng });
         try {
           const saved = JSON.parse(
-            localStorage.getItem(`cybr-cart:${d.restaurant.id}`) || "[]",
+            browserStorage.get(`cybr-cart:${d.restaurant.id}`) || "[]",
           );
           setBasket(
             saved.map((x: unknown) => {
               const parsed = cartLineSchema.parse(x);
-              return { ...parsed, key: crypto.randomUUID() };
+              return { ...parsed, key: browserUuid() };
             }),
           );
         } catch {
@@ -73,7 +74,7 @@ export function Storefront() {
   }, []);
   useEffect(() => {
     if (catalog)
-      localStorage.setItem(
+      browserStorage.set(
         `cybr-cart:${catalog.restaurant.id}`,
         JSON.stringify(
           basket.map(({ key, ...line }) => {
@@ -115,9 +116,9 @@ export function Storefront() {
   });
   const changeBasket = (next: BasketLine[]) => {
     setBasket(next);
-    const key = crypto.randomUUID();
+    const key = browserUuid();
     setIdempotency(key);
-    localStorage.setItem("cybr-checkout-key", key);
+    browserStorage.set("cybr-checkout-key", key);
   };
   const openProduct = (p: Product) => {
     setProduct(p);
@@ -143,7 +144,7 @@ export function Storefront() {
     changeBasket([
       ...basket,
       {
-        key: crypto.randomUUID(),
+        key: browserUuid(),
         product_id: product.id,
         quantity,
         options: choices,
@@ -178,7 +179,7 @@ export function Storefront() {
     setPlacing(true);
     setNotice("");
     const fields = new FormData(event.currentTarget);
-    localStorage.setItem("cybr-checkout-key", idempotency);
+    browserStorage.set("cybr-checkout-key", idempotency);
     try {
       const response = await fetch("/api/orders", {
         method: "POST",
@@ -199,8 +200,8 @@ export function Storefront() {
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error);
-      localStorage.removeItem(`cybr-cart:${catalog!.restaurant.id}`);
-      localStorage.removeItem("cybr-checkout-key");
+      browserStorage.remove(`cybr-cart:${catalog!.restaurant.id}`);
+      browserStorage.remove("cybr-checkout-key");
       router.push(`/track#token=${data.tracking_token}`);
     } catch (e) {
       setNotice(
@@ -319,11 +320,11 @@ export function Storefront() {
           )}
           {error && (
             <div role="alert" className="setup-card">
-              <h3>Estamos preparando esta cocina.</h3>
+              <h3>No pudimos cargar el menú.</h3>
               <p>{error}</p>
               <p>
-                El menú aparecerá al conectar la base de datos de esta
-                instalación. No se aceptan pedidos todavía.
+                Intenta recargar la página. Si continúa el problema, comparte
+                este mensaje para que podamos revisarlo.
               </p>
             </div>
           )}

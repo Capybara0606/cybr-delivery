@@ -27,7 +27,7 @@ export function useModalFocus(open: boolean, onClose: () => void) {
       if (event.key === "Tab") {
         const items = getItems(),
           first = items[0],
-          last = items.at(-1);
+          last = items[items.length - 1];
         if (event.shiftKey && document.activeElement === first) {
           event.preventDefault();
           last?.focus();
