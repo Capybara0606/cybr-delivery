@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { canTrack, navigationUrl, validPosition, type Delivery } from '../../apps/driver/src/delivery';
+import { canTrack, navigationUrl, validPosition, type Delivery } from '../../apps/driver/src/domain/delivery';
 const delivery = (status: string, assignment_status: string) => ({ status, assignment_status }) as Delivery;
 describe('native driver GPS policy', () => {
   it('shares only for an accepted order on the way', () => {

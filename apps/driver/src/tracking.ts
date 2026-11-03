@@ -2,7 +2,7 @@ import * as Location from 'expo-location';
 import * as TaskManager from 'expo-task-manager';
 import * as SecureStore from 'expo-secure-store';
 import { backend, workspace } from './backend';
-import { canTrack, validPosition } from './delivery';
+import { canTrack, validPosition } from './domain/delivery';
 
 export const TRACKING_TASK = 'cybr-active-delivery-location';
 const assignmentKey = 'cybr.tracking.assignment';

@@ -3,7 +3,7 @@ import * as SecureStore from 'expo-secure-store';
 import { createClient, processLock, type SupabaseClient } from '@supabase/supabase-js';
 import { digestStringAsync, CryptoDigestAlgorithm } from 'expo-crypto';
 import { config, validateConfig } from './config';
-import type { Workspace } from './delivery';
+import type { Workspace } from './domain/delivery';
 
 const options = { keychainAccessible: SecureStore.AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY };
 // Split large auth sessions: SecureStore items have platform-dependent size limits.

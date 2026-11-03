@@ -5,7 +5,7 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { backend, command, workspace } from './src/backend';
 import { config, validateConfig } from './src/config';
-import { canTrack, navigationUrl, type Workspace } from './src/delivery';
+import { canTrack, navigationUrl, type Workspace } from './src/domain/delivery';
 import { startTracking, stopTracking, trackingStatus } from './src/tracking';
 
 const money = (cents: number) => `$${(cents / 100).toFixed(2)}`;
