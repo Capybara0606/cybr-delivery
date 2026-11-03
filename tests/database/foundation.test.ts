@@ -1093,5 +1093,36 @@ describe.skipIf(!config)(
       const delivered = (await db.query('select public.guest_order_tracking($1) d', [token])).rows[0].d;
       expect(delivered.location).toBeUndefined();
     });
+
+    it('staff sees shift GPS without a delivery, with no customer data or direct table access', async () => {
+      await actor(CARLOS); await db.query('select public.publish_shift_location(13.7,-89.2,8,now())');
+      await actor(OWNER);
+      const rows = (await db.query('select public.staff_shift_locations($1) d', [R])).rows[0].d;
+      const carlos = rows.find((r: { driver_id: string }) => r.driver_id === DRIVER);
+      expect(carlos.lat).toBe(13.7); expect(carlos.lng).toBe(-89.2); expect(carlos.order_number).toBeNull();
+      expect(carlos.customer_phone).toBeUndefined(); expect(carlos.tracking_token_hash).toBeUndefined();
+      expect(rows.find((r: { driver_id: string }) => r.driver_id === SECOND_DRIVER).lat).toBeNull();
+      await errorCode(() => db.query('select * from private.driver_shift_locations'), '42501');
+      await actor(STAFF); expect((await db.query('select public.staff_shift_locations($1) d', [R])).rows[0].d.length).toBe(2);
+    });
+    it('fleet GPS rejects drivers, anonymous and members of other restaurants', async () => {
+      for (const user of [CARLOS, STRANGER, OTHER_OWNER]) {
+        await actor(user); await errorCode(() => db.query('select public.staff_shift_locations($1)', [R]), '42501');
+      }
+      await actor(OWNER); await errorCode(() => db.query('select public.staff_shift_locations($1)', [OTHER]), '42501');
+      await superuser(); await db.query('set local role anon');
+      await errorCode(() => db.query('select public.staff_shift_locations($1)', [R]), '42501');
+    });
+    it('fleet hides coordinates after 90 seconds and removes closed shifts and revoked drivers', async () => {
+      await actor(CARLOS); await db.query('select public.publish_shift_location(13.7,-89.2,8,now())');
+      await superuser(); await db.query("update private.driver_shift_locations set received_at=now()-interval '91 seconds' where driver_id=$1", [DRIVER]);
+      await actor(OWNER);
+      const old = (await db.query('select public.staff_shift_locations($1) d', [R])).rows[0].d.find((r: { driver_id: string }) => r.driver_id === DRIVER);
+      expect(old.lat).toBeNull(); expect(old.lng).toBeNull(); expect(old.accuracy_m).toBeNull(); expect(Number(old.age_seconds)).toBeGreaterThan(90);
+      await actor(CARLOS); await db.query('select public.set_driver_availability(false)');
+      await actor(OWNER); expect((await db.query('select public.staff_shift_locations($1) d', [R])).rows[0].d.some((r: { driver_id: string }) => r.driver_id === DRIVER)).toBe(false);
+      await superuser(); await db.query("update public.restaurant_members set role='staff' where user_id=$1", [ANDREA]);
+      await actor(OWNER); expect((await db.query('select public.staff_shift_locations($1) d', [R])).rows[0].d).toEqual([]);
+    });
   },
 );

@@ -183,6 +183,22 @@ try {
     rider.getByRole("button", { name: /Estoy en turno/ }),
   ).toBeVisible();
   await login(admin, "/admin", owner);
+  const mobile = createClient(status.API_URL, status.ANON_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
+  check(!(await mobile.auth.signInWithPassword(driver)).error, 'Native driver authenticated for shift GPS');
+  check(!(await mobile.rpc('publish_shift_location', { p_lat: 13.693, p_lng: -89.218, p_accuracy: 5, p_recorded_at: new Date().toISOString() })).error, 'Real shift RPC publishes without a delivery');
+  const forbiddenFleet = await guest.request.get(base + '/api/admin/fleet-locations');
+  check(forbiddenFleet.status() === 401, 'Anonymous cannot read fleet GPS');
+  check((await rider.request.get(base + '/api/admin/fleet-locations')).status() === 403, 'Driver cannot read staff fleet GPS');
+  const fleetResponse = await admin.request.get(base + '/api/admin/fleet-locations');
+  const fleetData = await fleetResponse.json();
+  check(fleetResponse.ok() && fleetResponse.headers()['cache-control'] === 'no-store' && fleetData.locations.some(p => p.driver_id === driverId && p.lat === 13.693 && p.order_number === null), 'Admin reads no-store shift GPS without order');
+  await admin.getByRole('button', { name: 'Flota', exact: true }).click();
+  await expect(admin.getByRole('heading', { name: 'Ubicación durante el turno' })).toBeVisible();
+  await expect(admin.getByText('GPS reciente', { exact: true })).toBeVisible();
+  await admin.screenshot({ path: `${artifacts}/admin-shift-gps.png`, fullPage: true });
+  await admin.getByRole('button', { name: 'Pedidos', exact: true }).click();
+  await mobile.auth.signOut({ scope: 'local' });
+
   await expect(admin.getByRole("heading", { name: /Tu cocina/ })).toBeVisible();
   await expect(admin.locator(".sync-state")).toContainText(
     "ACTUALIZACIÓN EN VIVO",

@@ -2379,3 +2379,15 @@ td {
   padding: 12px 15px;
   font: 10px var(--font-mono);
 }
+
+.shift-fleet { margin-top: 28px; border-top: 1px solid var(--border); padding-top: 24px; }
+.fleet-heading { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
+.fleet-heading h3, .fleet-heading h4 { margin: 0; }
+.fleet-position-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 16px; margin-top: 20px; }
+.fleet-position-card { border: 1px solid var(--border); background: var(--surface); padding: 18px; min-width: 0; }
+.fleet-position-card p { overflow-wrap: anywhere; }
+.fleet-position-card a { color: var(--green); font-size: 13px; }
+.fleet-coordinates { font: 12px var(--font-mono); color: var(--muted); }
+.fleet-map-frame { margin-top: 20px; }
+.fleet-map-frame .map { height: 380px; }
+.fleet-position-card .text-button { border: 1px solid var(--border); background: transparent; color: var(--green); padding: 9px 12px; font-size: 13px; }

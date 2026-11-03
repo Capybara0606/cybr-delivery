@@ -17,7 +17,7 @@ import {
 import { useModalFocus } from "@/components/use-modal-focus";
 import { installation } from "@/config/installation";
 import { TeamLogin } from "./access";
-import { LocationMap } from "@/components/location-map";
+import { LiveFleet } from "./fleet";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { money, statusLabels } from "@/lib/commerce/contracts";
 type Order = {
@@ -1075,64 +1075,5 @@ function SettingsForm({
         </button>
       </form>
     </section>
-  );
-}
-function LiveFleet() {
-  const [locations, setLocations] = useState<
-    {
-      driver_name: string;
-      lat: number;
-      lng: number;
-      is_stale: boolean;
-      is_simulated: boolean;
-      recorded_at: string;
-    }[]
-  >([]);
-  useEffect(() => {
-    let cancelled = false;
-    const load = async () => {
-      try {
-        const r = await fetch("/api/driver/locations");
-        if (r.ok) {
-          const d = await r.json();
-          if (!cancelled) setLocations(d.locations);
-        }
-      } catch {}
-    };
-    void load();
-    const timer = setInterval(load, 5000);
-    return () => {
-      cancelled = true;
-      clearInterval(timer);
-    };
-  }, []);
-  return (
-    <div className="fleet-live">
-      <h3>Entregas activas</h3>
-      {!locations.length ? (
-        <p className="field-hint">Sin ubicaciones de entregas activas.</p>
-      ) : (
-        locations.map((p, i) => (
-          <div key={i}>
-            <LocationMap point={p} label={`Ubicación de ${p.driver_name}`} />
-            <p className={p.is_stale ? "notice" : "field-hint"}>
-              {p.driver_name} · {p.is_simulated ? "SIMULACIÓN · " : ""}
-              {p.is_stale ? "GPS desactualizado" : "GPS recibido"} ·{" "}
-              <a
-                target="_blank"
-                rel="noreferrer"
-                href={`https://www.openstreetmap.org/?mlat=${p.lat}&mlon=${p.lng}#map=16/${p.lat}/${p.lng}`}
-              >
-                Ver ubicación ↗
-              </a>{" "}
-              ·{" "}
-              {new Date(p.recorded_at).toLocaleTimeString("es-SV", {
-                timeZone: "America/El_Salvador",
-              })}
-            </p>
-          </div>
-        ))
-      )}
-    </div>
   );
 }

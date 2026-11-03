@@ -42,3 +42,6 @@ No exigir randomUUID ni persistencia local para navegar/comprar: fallback cripto
 
 ## D-022 — Ubicación durante todo el turno, separada de clientes
 Alcance confirmado explícitamente por usuario: siempre durante turno activo, nunca fuera de turno/sesión. GPS nativo automático con permisos/aviso y posibilidad de cerrar turno. Privado por driver para futura flota; cliente únicamente su entrega en camino. Sin ruta histórica ni SELECT directo ni publicación Realtime de posiciones privadas. No saltar código/cobro ni transiciones de entrega para resolver UI. Plan admin separado, no implementado en esta fase.
+
+## D-023 — Flota durante todo el turno
+Usuario autoriza ejecutar plan. API restringida owner/staff a instalación, ningún SELECT directo de tabla privada. Polling solo visible 10 s y mapa único con múltiples drivers, sin ampliar servicios. Sin historial, datos antiguos no se presentan como actuales: aviso 30 s y quitar pin/coords 90 s, incluso si se interrumpe polling. No abrir ubicaciones de turnos a clientes ni a otros drivers.

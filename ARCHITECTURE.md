@@ -54,3 +54,6 @@ Compatibilidad web: src/lib/browser/compat.ts proporciona UUID seguro sin random
 
 ## GPS por turno (sustituye límite nativo por entrega)
 Turno=drivers.is_available. Android inicia/reanuda GPS automáticamente con permisos y servicio visible; al cerrar turno/sesión lo detiene. private.driver_shift_locations almacena solo última posición propia mediante publish_shift_location; no grants de lectura ni Realtime. Tracking invitado conserva tabla de asignación y solo en camino. Cerrar turno borra ambas posiciones; driver row lock sincroniza publicación/cierre. Completar/cancelar entrega borra solo ubicación de asignación, no la del turno aún activo. ADMIN_LOCATION_PLAN.md define la futura lectura owner/staff, aún no habilitada.
+
+## Lectura de GPS de turno por administración
+private.driver_shift_locations -> RPC staff_shift_locations con owner/staff verificado -> GET /api/admin/fleet-locations con sesión de usuario -> LiveFleet/FleetMap en pestaña Flota. Sin grants SELECT privados ni Realtime, caché no-store y polling 10 s solo visible. Solo drivers con turno/membresía actual; coordenadas >90 s se omiten en SQL y navegador, retrasos >30 s señalados. Lista alternativa si MapLibre no carga, nunca coordenadas estimadas.
