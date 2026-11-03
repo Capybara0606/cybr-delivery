@@ -5,15 +5,17 @@ on:
       build_run_id:
         description: Successful Build Android driver APK run
         required: true
-        default: '41561769339'
       source_sha:
         description: Exact source commit of the APK
         required: true
-        default: '3e89b95891cfde12310224e638366abe24cbecda'
       release_tag:
         description: Pilot release tag
         required: true
-        default: driver-v0.1.0-pilot
+        default: driver-v0.2.0-pilot
+      app_version:
+        description: APK version name
+        required: true
+        default: '0.2.0'
 permissions:
   contents: write
   actions: read
@@ -27,6 +29,7 @@ jobs:
       BUILD_RUN: ${{ inputs.build_run_id }}
       SOURCE_SHA: ${{ inputs.source_sha }}
       RELEASE_TAG: ${{ inputs.release_tag }}
+      APP_VERSION: ${{ inputs.app_version }}
     steps:
       - name: Verify build succeeded for the exact source
         run: |
@@ -40,16 +43,18 @@ jobs:
           path: artifact
       - name: Publish pilot APK for direct mobile download
         run: |
-          mv artifact/app-release.apk CYBR-Repartidor-0.1.0-arm64.apk
+          [[ "$APP_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          APK_NAME="CYBR-Repartidor-${APP_VERSION}-arm64.apk"
+          mv artifact/app-release.apk "$APK_NAME"
           cat > release-notes.md <<'NOTES'
-          Primera versión piloto Android ARM64 de CYBR Repartidor. Usa la demo Café Aurora y tu cuenta existente de repartidor.
+          Versión piloto Android ARM64 de CYBR Repartidor. Usa la demo Café Aurora y tu cuenta existente de repartidor.
 
-          Login, turno, asignaciones, recogida/salida/llegada, navegación externa, cobro y código de entrega, historial y GPS nativo con permisos/aviso visible. Sin mapa embebido ni notificaciones push todavía.
+          Corrige la recogida del pedido assigned y permite finalizar entrega con código/cobro. GPS automático durante todo el turno, incluso sin pedido; se detiene al cerrar turno o sesión. El cliente solo ve ubicación de su entrega en camino. Ubicación de turno privada; plan del panel admin documentado, todavía no habilitado. Requiere permisos y aviso visible del sistema. Sin mapa embebido ni notificaciones push todavía.
 
           APK con JavaScript embebido: no requiere PC, Metro, Expo Go ni cuenta Expo. Firma de desarrollo para pruebas, no distribución productiva de Play Store. No contiene secretos de servidor.
 
           Compilación y firma verificadas; pruebas físicas de GPS con pantalla bloqueada/navegación pendientes. No se garantiza continuidad al forzar cierre de app.
           NOTES
           printf '\nFuente exacta: %s\nBuild: https://github.com/%s/actions/runs/%s\n\nSHA256:\n' "$SOURCE_SHA" "$GH_REPO" "$BUILD_RUN" >> release-notes.md
-          sha256sum CYBR-Repartidor-0.1.0-arm64.apk >> release-notes.md
-          gh release create "$RELEASE_TAG" CYBR-Repartidor-0.1.0-arm64.apk --prerelease --target "$SOURCE_SHA" --title 'CYBR Repartidor v0.1.0 · piloto Android' --notes-file release-notes.md
+          sha256sum "$APK_NAME" >> release-notes.md
+          gh release create "$RELEASE_TAG" "$APK_NAME" --prerelease --target "$SOURCE_SHA" --title "CYBR Repartidor v${APP_VERSION} · piloto Android" --notes-file release-notes.md

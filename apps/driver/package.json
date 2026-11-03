@@ -2,7 +2,7 @@
   "name": "cybr-delivery-driver",
   "description": "Aplicaci\u00f3n nativa para repartidores de instalaciones CYBR DELIVERY",
   "license": "0BSD",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "main": "index.ts",
   "dependencies": {
     "@supabase/supabase-js": "2.118.0",

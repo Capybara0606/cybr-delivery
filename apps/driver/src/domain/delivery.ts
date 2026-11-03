@@ -23,3 +23,14 @@ export function navigationUrl(point: Point) {
   if (!Number.isFinite(point.lat) || !Number.isFinite(point.lng)) throw new Error('Ubicación no válida.');
   return `https://www.google.com/maps/dir/?api=1&destination=${point.lat},${point.lng}&travelmode=driving`;
 }
+
+export function canShareShift(workspace: Workspace | null) {
+  return workspace?.driver.is_available === true;
+}
+export function nextDriverAction(active: Delivery | null): 'picked_up' | 'on_the_way' | 'delivered' | null {
+  if (active?.assignment_status !== 'accepted') return null;
+  if (active.status === 'assigned') return 'picked_up';
+  if (active.status === 'picked_up') return 'on_the_way';
+  if (active.status === 'on_the_way') return 'delivered';
+  return null;
+}

@@ -1036,5 +1036,62 @@ describe.skipIf(!config)(
         "42501",
       );
     });
+
+    it('stores only the current driver shift position without an order and keeps it private', async () => {
+      await actor(CARLOS);
+      await db.query('select public.publish_shift_location(13.7,-89.2,8,now())');
+      await errorCode(() => db.query('select * from private.driver_shift_locations'), '42501');
+      await errorCode(() => db.query("select public.publish_shift_location(13.7,-89.2,8,now()-interval '1 second')"), '22023');
+      await superuser();
+      const { rows } = await db.query('select driver_id,restaurant_id from private.driver_shift_locations');
+      expect(rows).toEqual([{ driver_id: DRIVER, restaurant_id: R }]);
+      expect((await db.query('select count(*)::int n from public.driver_locations')).rows[0].n).toBe(0);
+      await actor(OWNER);
+      await errorCode(() => db.query('select public.publish_shift_location(13.7,-89.2,8,now())'), '42501');
+      await errorCode(() => db.query('select * from private.driver_shift_locations'), '42501');
+      await superuser(); await db.query('set local role anon');
+      await errorCode(() => db.query('select public.publish_shift_location(13.7,-89.2,8,now())'), '42501');
+    });
+    it('rejects shift GPS off duty, stale data and poor accuracy', async () => {
+      await actor(CARLOS);
+      await errorCode(() => db.query("select public.publish_shift_location(13.7,-89.2,8,now()-interval '31 seconds')"), '22023');
+      await errorCode(() => db.query('select public.publish_shift_location(13.7,-89.2,1001,now())'), '22023');
+      await db.query('select public.set_driver_availability(false)');
+      await errorCode(() => db.query('select public.publish_shift_location(13.7,-89.2,8,now())'), '42501');
+    });
+    it('clears shift and customer positions atomically on closing the shift', async () => {
+      const o = await order(); await ready(o.id);
+      const a = (await db.query('select public.offer_assignment($1,$2) id', [o.id, DRIVER])).rows[0].id;
+      await actor(CARLOS);
+      await db.query('select public.respond_assignment($1,true)', [a]);
+      await db.query("select public.driver_progress($1,'picked_up',null)", [o.id]);
+      await db.query("select public.driver_progress($1,'on_the_way',null)", [o.id]);
+      await db.query('select public.publish_shift_location(13.7,-89.2,8,now())');
+      await db.query('select public.publish_driver_location($1,13.7,-89.2,8,now(),false)', [a]);
+      await db.query('select public.set_driver_availability(false)');
+      await errorCode(() => db.query('select public.publish_driver_location($1,13.7,-89.2,8,now(),false)', [a]), '42501');
+      await superuser();
+      expect((await db.query('select count(*)::int n from private.driver_shift_locations')).rows[0].n).toBe(0);
+      expect((await db.query('select count(*)::int n from public.driver_locations')).rows[0].n).toBe(0);
+    });
+    it('preserves private shift GPS after delivery without exposing it to the customer', async () => {
+      const o = await order(); await ready(o.id);
+      const a = (await db.query('select public.offer_assignment($1,$2) id', [o.id, DRIVER])).rows[0].id;
+      await actor(CARLOS);
+      await db.query('select public.respond_assignment($1,true)', [a]);
+      await db.query('select public.publish_shift_location(13.7,-89.2,8,now())');
+      await superuser();
+      const token = (await db.query('select tracking_token_hash from public.orders where id=$1', [o.id])).rows[0].tracking_token_hash;
+      const assigned = (await db.query('select public.guest_order_tracking($1) d', [token])).rows[0].d;
+      expect(assigned.location).toBeUndefined();
+      await actor(CARLOS);
+      await db.query("select public.driver_progress($1,'picked_up',null)", [o.id]);
+      await db.query("select public.driver_progress($1,'on_the_way',null)", [o.id]);
+      await db.query("select public.driver_progress($1,'delivered','hash-only-test')", [o.id]);
+      await superuser();
+      expect((await db.query('select count(*)::int n from private.driver_shift_locations')).rows[0].n).toBe(1);
+      const delivered = (await db.query('select public.guest_order_tracking($1) d', [token])).rows[0].d;
+      expect(delivered.location).toBeUndefined();
+    });
   },
 );

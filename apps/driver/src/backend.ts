@@ -44,12 +44,17 @@ export function backend() {
     global: { fetch: (input, init) => fetch(input, { ...init, signal: AbortSignal.timeout(15000) }) },
   });
 }
+export class DriverAccessError extends Error {}
 export async function workspace(): Promise<Workspace> {
   const db = backend();
   const { data: { user }, error: authError } = await db.auth.getUser();
-  if (authError || !user) throw new Error('Inicia sesión para continuar.');
+  if (authError || !user) {
+    if (authError && ((authError.status || 0) >= 500 || authError.name === 'AuthRetryableFetchError')) throw new Error('Sin conexión para verificar la sesión.');
+    throw new DriverAccessError('Inicia sesión para continuar.');
+  }
   const { data: member, error: memberError } = await db.from('restaurant_members').select('role').eq('restaurant_id', config.restaurantId).eq('user_id', user.id).single();
-  if (memberError || member?.role !== 'driver') throw new Error('Esta cuenta no tiene permisos de repartidor en este restaurante.');
+  if (memberError && memberError.code !== 'PGRST116') throw new Error('No se pudo verificar el permiso de repartidor.');
+  if (member?.role !== 'driver') throw new DriverAccessError('Esta cuenta no tiene permisos de repartidor en este restaurante.');
   const { data, error } = await db.rpc('driver_workspace');
   if (error) throw new Error('No se pudo consultar tu turno. Revisa la conexión.');
   return data as Workspace;

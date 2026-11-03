@@ -39,3 +39,6 @@ Usuario pide comenzar app repartidor. Expo/React Native comparte base Android/iO
 
 ## D-021 — Compatibilidad progresiva del catálogo
 No exigir randomUUID ni persistencia local para navegar/comprar: fallback criptográfico getRandomValues y sesión en memoria. No usar Math.random para idempotencia. Solicitar target Safari 15 mediante Browserslist; Next/Tailwind mantienen baseline oficial moderno, por lo que verificar dispositivo físico antes de anunciar soporte completo.
+
+## D-022 — Ubicación durante todo el turno, separada de clientes
+Alcance confirmado explícitamente por usuario: siempre durante turno activo, nunca fuera de turno/sesión. GPS nativo automático con permisos/aviso y posibilidad de cerrar turno. Privado por driver para futura flota; cliente únicamente su entrega en camino. Sin ruta histórica ni SELECT directo ni publicación Realtime de posiciones privadas. No saltar código/cobro ni transiciones de entrega para resolver UI. Plan admin separado, no implementado en esta fase.
