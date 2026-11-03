@@ -195,6 +195,8 @@ try {
   await admin.getByRole('button', { name: 'Flota', exact: true }).click();
   await expect(admin.getByRole('heading', { name: 'Ubicación durante el turno' })).toBeVisible();
   await expect(admin.getByText('GPS reciente', { exact: true })).toBeVisible();
+  await expect(admin.locator('.maplibregl-marker')).toHaveCount(1);
+  await expect(admin.getByRole('region', { name: 'Mapa de repartidores en turno' })).toHaveAttribute('aria-busy', 'false', { timeout: 20000 });
   await admin.screenshot({ path: `${artifacts}/admin-shift-gps.png`, fullPage: true });
   await admin.getByRole('button', { name: 'Pedidos', exact: true }).click();
   await mobile.auth.signOut({ scope: 'local' });

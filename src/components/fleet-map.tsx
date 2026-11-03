@@ -9,10 +9,11 @@ export function FleetMap({ points, selected }: { points: FleetPosition[]; select
   const signature = useRef("");
   const lastFocus = useRef("");
   const initial = useRef(points[0]);
-  const [ready, setReady] = useState(false), [failed, setFailed] = useState(false);
+  const [ready, setReady] = useState(false), [failed, setFailed] = useState(false), [loaded, setLoaded] = useState(false);
   useEffect(() => {
     let disposed = false;
     const currentMarkers = markers.current;
+    const timeout = setTimeout(() => { if (!disposed) setFailed(true); }, 15000);
     void import("maplibre-gl").then((lib) => {
       if (disposed || !element.current) return;
       try {
@@ -20,11 +21,12 @@ export function FleetMap({ points, selected }: { points: FleetPosition[]; select
         const instance = new lib.Map({ container: element.current, style: process.env.NEXT_PUBLIC_MAP_STYLE_URL || "https://tiles.openfreemap.org/styles/liberty", center: [initial.current.lng, initial.current.lat], zoom: 14, attributionControl: { compact: true } });
         map.current = instance;
         instance.addControl(new lib.NavigationControl(), "top-right");
+        instance.once("load", () => { clearTimeout(timeout); if (!disposed) setLoaded(true); });
         instance.on("error", () => { if (!disposed) setFailed(true); });
         setReady(true);
       } catch { setFailed(true); }
     }).catch(() => { if (!disposed) setFailed(true); });
-    return () => { disposed = true; for (const marker of currentMarkers.values()) marker.remove(); currentMarkers.clear(); map.current?.remove(); map.current = null; };
+    return () => { disposed = true; clearTimeout(timeout); for (const marker of currentMarkers.values()) marker.remove(); currentMarkers.clear(); map.current?.remove(); map.current = null; };
   }, []);
   useEffect(() => {
     if (!ready || !map.current) return;
@@ -61,7 +63,8 @@ export function FleetMap({ points, selected }: { points: FleetPosition[]; select
     return () => { disposed = true; };
   }, [points, selected, ready]);
   return <div className="map-frame fleet-map-frame">
-    <div ref={element} className="map" role="region" aria-label="Mapa de repartidores en turno" />
+    <div ref={element} className="map" role="region" aria-label="Mapa de repartidores en turno" aria-busy={!loaded && !failed} data-map-ready={loaded} />
+    {!loaded && !failed && <p className="map-warning" role="status">Cargando mapa de la flota…</p>}
     {failed && <p className="map-warning">El mapa no pudo cargar. Consulta la lista de ubicaciones y su última actualización.</p>}
     <span className="map-hint">UBICACIÓN DEL TURNO · SOLO ADMINISTRACIÓN</span>
   </div>;
